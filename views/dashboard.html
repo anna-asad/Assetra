@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-center">
+            <input type="text" class="search-bar" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h2 class="page-title">Dashboard and Statistics</h2>
+
+        <div class="stats-grid">
+            <!-- Total Assets Card -->
+            <div class="stat-card">
+                <div class="stat-number" id="totalAssets">0</div>
+                <div class="stat-label">Total Assets</div>
+            </div>
+
+            <!-- Total Users Card -->
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+
+            <!-- Missing Assets Card -->
+            <div class="stat-card">
+                <div class="stat-number" id="missingAssets">0</div>
+                <div class="stat-label">Missing Assets</div>
+            </div>
+
+            <!-- Assets Under Maintenance Card -->
+            <div class="stat-card">
+                <div class="stat-number" id="maintenanceAssets">0</div>
+                <div class="stat-label">Assets under Maintenance</div>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <!-- Asset Distribution Chart Placeholder -->
+            <div class="chart-card">
+                <h3>Asset Distribution</h3>
+                <div class="chart-placeholder">
+                    <div class="bar-chart">
+                        <div class="bar" style="height: 80%;">
+                            <span class="bar-label">Available</span>
+                            <span class="bar-value" id="availableCount">0</span>
+                        </div>
+                        <div class="bar" style="height: 60%;">
+                            <span class="bar-label">Allocated</span>
+                            <span class="bar-value" id="allocatedCount">0</span>
+                        </div>
+                        <div class="bar" style="height: 40%;">
+                            <span class="bar-label">Maintenance</span>
+                            <span class="bar-value" id="maintenanceCount">0</span>
+                        </div>
+                        <div class="bar" style="height: 30%;">
+                            <span class="bar-label">Missing</span>
+                            <span class="bar-value" id="missingCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-card">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="window.location.href='/views/assets.html'">
+                        View All Assets
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='/views/add-asset.html'">
+                        Add New Asset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

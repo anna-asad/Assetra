@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Sign Up</title>
+    <link rel="stylesheet" href="/css/signup.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="menu-icon">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+            <p class="tagline">Enterprise Asset Intelligence and Audit Management</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="signup-container">
+            <h2 class="signup-title">Welcome to Assentra Sign in</h2>
+            
+            <form id="signupForm" class="signup-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="John Doe"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="johndoe@email.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select Role</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="passkey">Enter Pass Key</label>
+                    <input 
+                        type="text" 
+                        id="passkey" 
+                        name="passkey" 
+                        placeholder="Enter admin passkey"
+                        required
+                    >
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+                <div id="successMessage" class="success-message"></div>
+
+                <button type="submit" class="signin-btn">Sign in</button>
+            </form>
+
+            <p class="login-text">
+                Already have an Account? <a href="/views/login.html" class="login-link">Click here</a> to log in
+            </p>
+        </div>
+    </main>
+
+    <script src="/js/signup.js"></script>
+</body>
+</html>
