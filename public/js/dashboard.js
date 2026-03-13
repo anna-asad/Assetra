@@ -41,6 +41,13 @@ async function loadDashboardStats() {
         if (data.success) {
             const stats = data.stats;
 
+            // Show department info for Managers
+            const departmentInfo = document.getElementById('departmentInfo');
+            if (stats.department && stats.department !== 'All Departments') {
+                departmentInfo.textContent = `Viewing: ${stats.department} Department`;
+                departmentInfo.style.display = 'block';
+            }
+
             // Update stat cards
             document.getElementById('totalAssets').textContent = stats.totalAssets || 0;
             document.getElementById('totalUsers').textContent = stats.totalUsers || 0;

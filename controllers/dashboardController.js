@@ -1,13 +1,24 @@
-const { getTotalAssets, getAssetsByStatus } = require('../models/assetModel');
+const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment } = require('../models/assetModel');
 const { getTotalUsers } = require('../models/userModel');
 
 async function getDashboardStats(req, res) {
   try {
-    const [totalAssets, totalUsers, assetsByStatus] = await Promise.all([
-      getTotalAssets(),
-      getTotalUsers(),
-      getAssetsByStatus()
-    ]);
+    const userRole = req.user.role;
+    const userDepartment = req.user.department;
+
+    let totalAssets, assetsByStatus;
+
+    if (userRole === 'Manager') {
+      // Manager: Only see their department's assets
+      totalAssets = await getTotalAssetsByDepartment(userDepartment);
+      assetsByStatus = await getAssetsByStatusAndDepartment(userDepartment);
+    } else {
+      // Admin: See all assets
+      totalAssets = await getTotalAssets();
+      assetsByStatus = await getAssetsByStatus();
+    }
+
+    const totalUsers = await getTotalUsers();
 
     // Format status breakdown
     const statusBreakdown = {
@@ -26,7 +37,8 @@ async function getDashboardStats(req, res) {
       stats: {
         totalAssets,
         totalUsers,
-        statusBreakdown
+        statusBreakdown,
+        department: userRole === 'Manager' ? userDepartment : 'All Departments'
       }
     });
   } catch (error) {

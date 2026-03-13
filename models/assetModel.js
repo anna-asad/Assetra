@@ -111,10 +111,45 @@ async function getAssetsByStatus() {
   }
 }
 
+async function getTotalAssetsByDepartment(department) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('department', sql.NVarChar, department)
+      .query('SELECT COUNT(*) as total FROM assets WHERE department = @department');
+    
+    return result.recordset[0].total;
+  } catch (error) {
+    console.error('Error getting total assets by department:', error);
+    throw error;
+  }
+}
+
+async function getAssetsByStatusAndDepartment(department) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('department', sql.NVarChar, department)
+      .query(`
+        SELECT status, COUNT(*) as count 
+        FROM assets 
+        WHERE department = @department
+        GROUP BY status
+      `);
+    
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting assets by status and department:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   createAsset,
   getAllAssets,
   updateAssetStatus,
   getTotalAssets,
-  getAssetsByStatus
+  getAssetsByStatus,
+  getTotalAssetsByDepartment,
+  getAssetsByStatusAndDepartment
 };
