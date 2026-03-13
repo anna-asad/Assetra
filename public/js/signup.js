@@ -9,6 +9,7 @@ signupForm.addEventListener('submit', async (e) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const role = document.getElementById('role').value;
+    const department = document.getElementById('department').value;
     const passkey = document.getElementById('passkey').value;
     
     // Hide previous messages
@@ -28,7 +29,7 @@ signupForm.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, email, password, role, passkey })
+            body: JSON.stringify({ username, email, password, role, department, passkey })
         });
         
         const data = await response.json();

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Add Asset</title>
+    <link rel="stylesheet" href="/css/asset-form.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-center">
+            <input type="text" class="search-bar" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Add New Asset</h2>
+            <button class="back-btn" onclick="window.location.href='/views/dashboard.html'">← Back to Dashboard</button>
+        </div>
+
+        <div class="form-container">
+            <form id="assetForm" class="asset-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="asset_tag">Asset Tag *</label>
+                        <input 
+                            type="text" 
+                            id="asset_tag" 
+                            name="asset_tag" 
+                            placeholder="e.g., LAPTOP-001"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="asset_name">Asset Name *</label>
+                        <input 
+                            type="text" 
+                            id="asset_name" 
+                            name="asset_name" 
+                            placeholder="e.g., Dell Laptop"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Computing">Computing</option>
+                            <option value="Office Equipment">Office Equipment</option>
+                            <option value="Electrical Equipment">Electrical Equipment</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Vehicles">Vehicles</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="Available">Available</option>
+                            <option value="Allocated">Allocated</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Missing">Missing</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="purchase_date">Purchase Date</label>
+                        <input 
+                            type="date" 
+                            id="purchase_date" 
+                            name="purchase_date"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purchase_cost">Purchase Cost</label>
+                        <input 
+                            type="number" 
+                            id="purchase_cost" 
+                            name="purchase_cost" 
+                            placeholder="0.00"
+                            step="0.01"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input 
+                            type="text" 
+                            id="location" 
+                            name="location" 
+                            placeholder="e.g., Office Floor 2"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <select id="department" name="department">
+                            <option value="">Select Department</option>
+                            <option value="IT">IT</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        rows="4"
+                        placeholder="Enter asset description..."
+                    ></textarea>
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+                <div id="successMessage" class="success-message"></div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="window.location.href='/views/assets.html'">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Asset</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="/js/add-asset.js"></script>
+</body>
+</html>

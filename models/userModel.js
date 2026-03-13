@@ -10,7 +10,7 @@ async function findUserByUsername(username) {
     return result.recordset[0];
   } catch (error) {
     console.error('Error finding user:', error);
-    throw error;
+    throw error; 
   }
 }
 

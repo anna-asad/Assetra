@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Assets</title>
+    <link rel="stylesheet" href="/css/assets.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-center">
+            <input type="text" class="search-bar" placeholder="Search assets..." id="searchInput">
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Asset Management</h2>
+            <div class="header-actions">
+                <button class="back-btn" onclick="window.location.href='/views/dashboard.html'">← Dashboard</button>
+                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">+ Add Asset</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <select id="statusFilter" class="filter-select">
+                <option value="">All Status</option>
+                <option value="Available">Available</option>
+                <option value="Allocated">Allocated</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Missing">Missing</option>
+            </select>
+        </div>
+
+        <div class="assets-container">
+            <div id="loadingMessage" class="loading-message">Loading assets...</div>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div id="assetsTable" class="assets-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Asset Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Department</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsTableBody">
+                        <!-- Assets will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noAssets" class="no-assets" style="display: none;">
+                <p>No assets found</p>
+                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">+ Add Your First Asset</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Status Update Modal -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <h3>Update Asset Status</h3>
+            <p id="modalAssetName"></p>
+            <select id="newStatus" class="status-select">
+                <option value="Available">Available</option>
+                <option value="Allocated">Allocated</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Missing">Missing</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" onclick="updateStatus()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/assets.js"></script>
+</body>
+</html>

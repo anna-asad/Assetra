@@ -94,10 +94,10 @@ module.exports = {
 
 async function signup(req, res) {
   try {
-    const { username, email, password, role, passkey } = req.body;
+    const { username, email, password, role, department, passkey } = req.body;
 
     // Validate input
-    if (!username || !email || !password || !role || !passkey) {
+    if (!username || !email || !password || !role || !department || !passkey) {
       return res.status(400).json({ 
         success: false, 
         message: 'All fields are required' 
@@ -145,7 +145,7 @@ async function signup(req, res) {
       password,
       role,
       full_name: username,
-      department: role === 'Admin' ? 'IT' : 'Operations'
+      department
     });
 
     // Log the signup action
