@@ -82,7 +82,6 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
 }
 
 .logout-btn:hover {
@@ -124,11 +123,6 @@ body {
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
 }
 
 .stat-number {
@@ -190,11 +184,6 @@ body {
     justify-content: flex-end;
     align-items: center;
     padding-bottom: 10px;
-    transition: all 0.3s;
-}
-
-.bar:hover {
-    opacity: 0.8;
 }
 
 .bar-label {
@@ -228,12 +217,10 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
 }
 
 .action-btn:hover {
     background-color: #d8a4d8;
-    transform: translateX(5px);
 }
 
 /* Responsive Design */

@@ -1,0 +1,90 @@
+// Sidebar Navigation Component
+function initSidebar() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const currentPage = window.location.pathname;
+
+    // Create sidebar HTML
+    const sidebarHTML = `
+        <nav class="sidebar" id="sidebar">
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="/views/dashboard.html" class="${currentPage.includes('dashboard') ? 'active' : ''}">
+                        <span class="menu-icon">📊</span>
+                        <span class="menu-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/views/assets.html" class="${currentPage.includes('assets') ? 'active' : ''}">
+                        <span class="menu-icon">📋</span>
+                        <span class="menu-text">Assets</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/views/add-asset.html" class="${currentPage.includes('add-asset') ? 'active' : ''}">
+                        <span class="menu-icon">➕</span>
+                        <span class="menu-text">Add Asset</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/views/profile.html" class="${currentPage.includes('profile') ? 'active' : ''}">
+                        <span class="menu-icon">👤</span>
+                        <span class="menu-text">Profile</span>
+                    </a>
+                </li>
+                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
+                    <a href="/views/settings.html" class="${currentPage.includes('settings') ? 'active' : ''}">
+                        <span class="menu-icon">⚙️</span>
+                        <span class="menu-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    `;
+
+    // Insert sidebar after header
+    const header = document.querySelector('.header');
+    if (header) {
+        header.insertAdjacentHTML('afterend', sidebarHTML);
+    }
+
+    // Add sidebar CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/css/sidebar.css';
+    document.head.appendChild(link);
+
+    // Hamburger menu toggle
+    const menuIcon = document.querySelector('.menu-icon');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const mainContent = document.querySelector('.main-content');
+
+    if (menuIcon) {
+        menuIcon.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            
+            // On desktop, collapse/expand
+            if (window.innerWidth > 768) {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        });
+    }
+
+    // Close sidebar when clicking overlay (mobile)
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        });
+    }
+}
+
+// Initialize sidebar when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    initSidebar();
+}

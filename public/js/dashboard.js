@@ -81,7 +81,7 @@ function updateBarHeights(statusBreakdown) {
         statusBreakdown.Allocated || 0,
         statusBreakdown.Maintenance || 0,
         statusBreakdown.Missing || 0,
-        1 // Minimum 1 to avoid division by zero
+        1
     );
 
     const bars = document.querySelectorAll('.bar');
@@ -94,7 +94,7 @@ function updateBarHeights(statusBreakdown) {
 
     bars.forEach((bar, index) => {
         const percentage = (values[index] / maxValue) * 100;
-        bar.style.height = Math.max(percentage, 20) + '%'; // Minimum 20% height for visibility
+        bar.style.height = Math.max(percentage, 20) + '%';
     });
 }
 

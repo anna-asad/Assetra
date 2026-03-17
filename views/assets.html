@@ -9,7 +9,7 @@
 <body>
     <header class="header">
         <div class="header-left">
-            <div class="menu-icon">☰</div>
+            <div class="menu-icon menu-toggle">☰</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
         <div class="header-center">
@@ -71,24 +71,7 @@
         </div>
     </main>
 
-    <!-- Status Update Modal -->
-    <div id="statusModal" class="modal">
-        <div class="modal-content">
-            <h3>Update Asset Status</h3>
-            <p id="modalAssetName"></p>
-            <select id="newStatus" class="status-select">
-                <option value="Available">Available</option>
-                <option value="Allocated">Allocated</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Missing">Missing</option>
-            </select>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn-primary" onclick="updateStatus()">Update</button>
-            </div>
-        </div>
-    </div>
-
+    <script src="/js/sidebar.js"></script>
     <script src="/js/assets.js"></script>
 </body>
 </html>

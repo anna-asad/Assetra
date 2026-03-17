@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Settings</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/settings.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h2 class="page-title">System Settings</h2>
+        <p class="admin-only-notice">Admin Only</p>
+
+        <div class="settings-container">
+            <div class="settings-card">
+                <h3>System Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Application Name:</span>
+                        <span class="info-value">Assetra</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Version:</span>
+                        <span class="info-value">1.0.0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Environment:</span>
+                        <span class="info-value">Development</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Database:</span>
+                        <span class="info-value">SQL Server</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>System Statistics</h3>
+                <div class="stats-list">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Users:</span>
+                        <span class="stat-value" id="totalUsers">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Assets:</span>
+                        <span class="stat-value" id="totalAssets">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Departments:</span>
+                        <span class="stat-value">6</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    <button class="settings-btn" onclick="window.location.href='/views/dashboard.html'">
+                        View Dashboard
+                    </button>
+                    <button class="settings-btn" onclick="window.location.href='/views/assets.html'">
+                        Manage Assets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/settings.js"></script>
+</body>
+</html>

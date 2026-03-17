@@ -1,25 +1,15 @@
-const { createAsset, getAllAssets, updateAssetStatus } = require('../models/assetModel');
-const { logAction } = require('../models/auditModel');
+const { createAsset, getAllAssets, updateAssetStatus } = require('../models/database');
 
 async function addAsset(req, res) {
   try {
     const { asset_tag, asset_name, category, description, purchase_date, 
             purchase_cost, status, location, department } = req.body;
 
-    // Validate required fields
+    // Simple validation
     if (!asset_tag || !asset_name || !category || !status) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Asset tag, name, category, and status are required' 
-      });
-    }
-
-    // Validate status
-    const validStatuses = ['Available', 'Allocated', 'Maintenance', 'Missing'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid status. Must be: Available, Allocated, Maintenance, or Missing' 
+        message: 'Please fill in all required fields' 
       });
     }
 
@@ -38,15 +28,6 @@ async function addAsset(req, res) {
 
     const newAsset = await createAsset(assetData);
 
-    // Log the action
-    await logAction(
-      req.user.userId, 
-      'CREATE', 
-      'asset', 
-      newAsset.asset_id, 
-      `Created asset: ${asset_name}`
-    );
-
     res.status(201).json({
       success: true,
       message: 'Asset created successfully',
@@ -54,17 +35,9 @@ async function addAsset(req, res) {
     });
   } catch (error) {
     console.error('Error adding asset:', error);
-    
-    if (error.message.includes('duplicate') || error.number === 2627) {
-      return res.status(409).json({ 
-        success: false, 
-        message: 'Asset tag already exists' 
-      });
-    }
-    
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to create asset' 
+      message: 'Error creating asset: ' + error.message 
     });
   }
 }
@@ -94,7 +67,7 @@ async function getAssets(req, res) {
     console.error('Error getting assets:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to retrieve assets' 
+      message: 'Error loading assets: ' + error.message 
     });
   }
 }
@@ -104,43 +77,25 @@ async function changeAssetStatus(req, res) {
     const { id } = req.params;
     const { status } = req.body;
 
-    // Validate status
-    const validStatuses = ['Available', 'Allocated', 'Maintenance', 'Missing'];
-    if (!status || !validStatuses.includes(status)) {
+    if (!status) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid status. Must be: Available, Allocated, Maintenance, or Missing' 
+        message: 'Status is required' 
       });
     }
 
     const updatedAsset = await updateAssetStatus(id, status, req.user.userId);
 
-    if (!updatedAsset) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Asset not found' 
-      });
-    }
-
-    // Log the action
-    await logAction(
-      req.user.userId, 
-      'UPDATE_STATUS', 
-      'asset', 
-      parseInt(id), 
-      `Changed status to: ${status}`
-    );
-
     res.json({
       success: true,
-      message: 'Asset status updated successfully',
+      message: 'Status updated successfully',
       asset: updatedAsset
     });
   } catch (error) {
     console.error('Error updating asset status:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to update asset status' 
+      message: 'Error updating status: ' + error.message 
     });
   }
 }

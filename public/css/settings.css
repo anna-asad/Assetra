@@ -1,0 +1,71 @@
+.admin-only-notice {
+    color: #e8b4e8;
+    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.settings-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.settings-card {
+    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.settings-card h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #e8b4e8;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+}
+
+.info-grid, .stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-item, .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.info-label, .stat-label {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.info-value, .stat-value {
+    color: #e8b4e8;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.settings-btn {
+    padding: 12px;
+    background-color: #e8b4e8;
+    color: #333;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.settings-btn:hover {
+    background-color: #d8a4d8;
+}

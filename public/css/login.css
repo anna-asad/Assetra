@@ -98,7 +98,6 @@ body {
     background-color: #ffffff;
     color: #333;
     outline: none;
-    transition: box-shadow 0.3s;
 }
 
 .form-group input::placeholder {
@@ -134,18 +133,12 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
     margin-top: 10px;
 }
 
 .signin-btn:hover {
     background-color: #f0f0f0;
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.signin-btn:active {
-    transform: translateY(0);
 }
 
 /* Sign Up Text */

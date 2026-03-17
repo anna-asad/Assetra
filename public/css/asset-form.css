@@ -82,7 +82,6 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
 }
 
 .logout-btn:hover {
@@ -116,7 +115,6 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.3s;
 }
 
 .back-btn:hover {
@@ -170,7 +168,6 @@ body {
     color: #333;
     outline: none;
     font-family: inherit;
-    transition: box-shadow 0.3s;
 }
 
 .form-group input:focus,
@@ -225,7 +222,6 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
 }
 
 .btn-primary {
@@ -235,7 +231,6 @@ body {
 
 .btn-primary:hover {
     background-color: #d8a4d8;
-    transform: translateY(-2px);
 }
 
 .btn-primary:disabled {

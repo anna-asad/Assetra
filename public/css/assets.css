@@ -82,7 +82,6 @@ body {
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s;
 }
 
 .logout-btn:hover {
@@ -119,7 +118,6 @@ body {
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    transition: all 0.3s;
 }
 
 .back-btn {
@@ -138,7 +136,6 @@ body {
 
 .add-btn:hover {
     background-color: #d8a4d8;
-    transform: translateY(-2px);
 }
 
 /* Filters */
@@ -214,7 +211,6 @@ th {
 
 tbody tr {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s;
 }
 
 tbody tr:hover {
@@ -259,90 +255,26 @@ tbody tr:hover {
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.3s;
 }
 
 .action-btn:hover {
     background-color: #d8a4d8;
 }
 
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
-
-.modal-content h3 {
-    margin-bottom: 15px;
-    color: #e8b4e8;
-}
-
-.modal-content p {
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.status-select {
-    width: 100%;
-    padding: 12px;
+/* Status Dropdown */
+.status-dropdown {
+    padding: 8px 12px;
     border: none;
     border-radius: 5px;
-    font-size: 15px;
-    margin-bottom: 20px;
+    background-color: #e8b4e8;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
     outline: none;
 }
 
-.modal-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-end;
-}
-
-.btn-primary,
-.btn-secondary {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-primary {
-    background-color: #e8b4e8;
-    color: #333;
-}
-
-.btn-primary:hover {
+.status-dropdown:hover {
     background-color: #d8a4d8;
-}
-
-.btn-secondary {
-    background-color: transparent;
-    color: #fff;
-    border: 2px solid #fff;
-}
-
-.btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Responsive Design */

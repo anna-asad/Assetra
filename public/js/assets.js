@@ -28,7 +28,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 let allAssets = [];
-let currentAssetId = null;
 
 // Load assets
 async function loadAssets(statusFilter = '') {
@@ -94,9 +93,13 @@ function displayAssets(assets) {
             <td>${asset.department || '-'}</td>
             <td>${asset.location || '-'}</td>
             <td>
-                <button class="action-btn" onclick="openStatusModal(${asset.asset_id}, '${asset.asset_name}', '${asset.status}')">
-                    Update Status
-                </button>
+                <select class="status-dropdown" onchange="updateStatus(${asset.asset_id}, this.value)">
+                    <option value="">Change Status</option>
+                    <option value="Available" ${asset.status === 'Available' ? 'selected' : ''}>Available</option>
+                    <option value="Allocated" ${asset.status === 'Allocated' ? 'selected' : ''}>Allocated</option>
+                    <option value="Maintenance" ${asset.status === 'Maintenance' ? 'selected' : ''}>Maintenance</option>
+                    <option value="Missing" ${asset.status === 'Missing' ? 'selected' : ''}>Missing</option>
+                </select>
             </td>
         `;
         tbody.appendChild(row);
@@ -110,35 +113,23 @@ document.getElementById('statusFilter').addEventListener('change', (e) => {
     loadAssets(e.target.value);
 });
 
-// Search functionality
+// Search - searches asset name, tag, and category
 document.getElementById('searchInput').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const filteredAssets = allAssets.filter(asset => 
-        asset.asset_tag.toLowerCase().includes(searchTerm) ||
         asset.asset_name.toLowerCase().includes(searchTerm) ||
+        asset.asset_tag.toLowerCase().includes(searchTerm) ||
         asset.category.toLowerCase().includes(searchTerm)
     );
     displayAssets(filteredAssets);
 });
 
-// Modal functions
-function openStatusModal(assetId, assetName, currentStatus) {
-    currentAssetId = assetId;
-    document.getElementById('modalAssetName').textContent = `Asset: ${assetName}`;
-    document.getElementById('newStatus').value = currentStatus;
-    document.getElementById('statusModal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('statusModal').style.display = 'none';
-    currentAssetId = null;
-}
-
-async function updateStatus() {
-    const newStatus = document.getElementById('newStatus').value;
+// Update status directly from dropdown
+async function updateStatus(assetId, newStatus) {
+    if (!newStatus) return;
     
     try {
-        const response = await fetch(`/api/assets/${currentAssetId}/status`, {
+        const response = await fetch(`/api/assets/${assetId}/status`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -150,7 +141,6 @@ async function updateStatus() {
         const data = await response.json();
         
         if (data.success) {
-            closeModal();
             loadAssets(document.getElementById('statusFilter').value);
         } else {
             alert(data.message || 'Failed to update status');
@@ -158,14 +148,6 @@ async function updateStatus() {
     } catch (error) {
         console.error('Error updating status:', error);
         alert('Connection error. Please try again.');
-    }
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('statusModal');
-    if (event.target === modal) {
-        closeModal();
     }
 }
 
