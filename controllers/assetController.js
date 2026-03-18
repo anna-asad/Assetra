@@ -40,7 +40,7 @@ async function addAsset(req, res) {
 async function getAssets(req, res) {
   try {
     let filter = {};
-    if (req.user.role !== 'Admin') {
+    if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
       filter.department = req.user.department;
     }
     const assets = await db.getAllAssets(filter);
@@ -56,7 +56,7 @@ async function getAssetById(req, res) {
     const assetId = req.params.id;
     const userDepartment = req.user.department;
     let deptFilter = userDepartment;
-    if (req.user.role === 'Admin') {
+    if (req.user.role === 'Admin' || req.user.role === 'Viewer') {
       deptFilter = null;
     }
     const asset = await db.getAssetById(assetId, deptFilter);

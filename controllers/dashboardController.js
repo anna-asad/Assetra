@@ -7,7 +7,7 @@ async function getDashboardStats(req, res) {
 
     let totalAssets, assetsByStatus, maintenanceCost, depreciation, auditedCount, maintainedCount, complianceScore, totalAssetValue;
 
-    if (userRole === 'Admin') {
+    if (userRole === 'Admin' || userRole === 'Viewer') {
       totalAssets = await getTotalAssets();
       assetsByStatus = await getAssetsByStatus();
       maintenanceCost = await getMaintenanceCost();
@@ -47,7 +47,7 @@ async function getDashboardStats(req, res) {
         auditedCount,
         maintainedCount,
         complianceScore,
-        department: userRole === 'Admin' ? 'All Departments' : userDepartment
+        department: (userRole === 'Admin' || userRole === 'Viewer') ? 'All Departments' : userDepartment
       }
     });
   } catch (error) {

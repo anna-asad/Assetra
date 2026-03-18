@@ -12,7 +12,7 @@ CREATE TABLE users (
     password_hash NVARCHAR(255) NOT NULL,
     full_name NVARCHAR(100) NOT NULL,
     email NVARCHAR(100) UNIQUE NOT NULL,
-    role NVARCHAR(20) NOT NULL CHECK (role IN ('Admin', 'Manager')),
+    role NVARCHAR(20) NOT NULL CHECK (role IN ('Admin', 'Manager', 'Viewer')),
     department NVARCHAR(50),
     is_active BIT DEFAULT 1,
     created_at DATETIME DEFAULT GETDATE(),

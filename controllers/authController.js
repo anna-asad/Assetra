@@ -79,24 +79,39 @@ async function signup(req, res) {
   try {
     const { username, email, password, role, department, passkey } = req.body;
 
-    if (!username || !email || !password || !role || !passkey) {
+    if (!username || !email || !password || !role) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Username, email, password, role, and passkey are required' 
+        message: 'Username, email, password, and role are required' 
       });
     }
 
-    if (role !== 'Admin' && (!department || department.trim() === '')) {
+    if (role !== 'Viewer' && !passkey) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Department is required for non-Admin roles' 
+        message: 'Passkey is required for this role' 
       });
     }
 
-    if (passkey !== 'assetra2024') {
+    if (role !== 'Admin' && role !== 'Viewer' && (!department || department.trim() === '')) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Department is required for non-Admin and non-Viewer roles' 
+      });
+    }
+
+    // Passkey validation based on role
+    if (role === 'Admin' && passkey !== 'assetra2024') {
       return res.status(403).json({ 
         success: false, 
-        message: 'Invalid passkey' 
+        message: 'Invalid admin passkey' 
+      });
+    }
+
+    if (role === 'Manager' && passkey !== 'manager2024') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Invalid manager passkey' 
       });
     }
 
@@ -122,7 +137,7 @@ async function signup(req, res) {
       password,
       role,
       full_name: username,
-      department: role === 'Admin' ? null : department
+      department: (role === 'Admin' || role === 'Viewer') ? null : department
     };
 
     const newUser = await createUser(userData);

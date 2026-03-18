@@ -25,7 +25,7 @@ function initSidebar() {
                         <span class="menu-text">Profile</span>
                     </a>
                 </li>
-                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
+                <li data-role="Admin" style="display: ${user.role === 'Admin' || user.role === 'Viewer' ? 'block' : 'none'}">
                     <a href="/views/settings.html" class="${currentPage.includes('settings') ? 'active' : ''}">
                         <span class="menu-icon">⚙️</span>
                         <span class="menu-text">Settings</span>

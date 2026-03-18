@@ -2,14 +2,31 @@ const signupForm = document.getElementById('signupForm');
 const errorMessage = document.getElementById('errorMessage');
 const successMessage = document.getElementById('successMessage');
 
-// Listen for role change to disable department for Admin
+// Listen for role change to disable department for Admin and Viewer, and disable passkey for Viewer
 document.getElementById('role').addEventListener('change', (e) => {
     const departmentSelect = document.getElementById('department');
-    if (e.target.value === 'Admin') {
+    const passkeyInput = document.getElementById('passkey');
+    
+    if (e.target.value === 'Admin' || e.target.value === 'Viewer') {
         departmentSelect.disabled = true;
         departmentSelect.value = '';
     } else {
         departmentSelect.disabled = false;
+    }
+    
+    if (e.target.value === 'Viewer') {
+        passkeyInput.disabled = true;
+        passkeyInput.removeAttribute('required');
+        passkeyInput.value = '';
+        passkeyInput.placeholder = 'Not required for Viewer';
+    } else if (e.target.value === 'Admin') {
+        passkeyInput.disabled = false;
+        passkeyInput.setAttribute('required', 'required');
+        passkeyInput.placeholder = 'Enter admin passkey';
+    } else if (e.target.value === 'Manager') {
+        passkeyInput.disabled = false;
+        passkeyInput.setAttribute('required', 'required');
+        passkeyInput.placeholder = 'Enter manager passkey';
     }
 });
 
