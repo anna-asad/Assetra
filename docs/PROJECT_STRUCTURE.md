@@ -1,8 +1,5 @@
 # Assetra Project Structure
 
-## Overview
-This project follows a clean separation between backend and frontend code.
-
 ```
 assetra/
 ├── backend/              # Node.js + Express backend
