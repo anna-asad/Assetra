@@ -1,107 +1,99 @@
-const { createAsset, getAllAssets, updateAssetStatus } = require('../models/database');
+const db = require('../models/database'); // Already exports createAsset
 
 async function addAsset(req, res) {
   try {
-    const { asset_tag, asset_name, category, description, purchase_date, 
-            purchase_cost, status, location, department } = req.body;
-
-    // Simple validation
-    if (!asset_tag || !asset_name || !category || !status) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please fill in all required fields' 
-      });
+    const userId = req.user?.userId; // From JWT
+    // Validate required fields
+    if (!req.body.asset_tag || req.body.asset_tag.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Asset tag is required' });
     }
-
+    if (!req.body.asset_name || req.body.asset_name.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Asset name is required' });
+    }
+    const purchaseCost = parseFloat(req.body.purchase_cost);
+    if (!req.body.purchase_cost || req.body.purchase_cost.trim() === '' || isNaN(purchaseCost) || purchaseCost <= 0) {
+      return res.status(400).json({ success: false, message: 'Purchase price is mandatory and must be a positive number' });
+    }
     const assetData = {
-      asset_tag,
-      asset_name,
-      category,
-      description: description || null,
-      purchase_date: purchase_date || null,
-      purchase_cost: purchase_cost || null,
-      status,
-      location: location || null,
-      department: department || req.user.department,
-      created_by: req.user.userId
+      asset_tag: req.body.asset_tag,
+      asset_name: req.body.asset_name,
+      category: req.body.category,
+      description: req.body.description,
+      purchase_date: req.body.purchase_date,
+      purchase_cost: parseFloat(req.body.purchase_cost),
+      status: req.body.status || 'Available',
+      location: req.body.location,
+      department: req.body.department,
+      created_by: userId,
+      maintenance_cost: parseFloat(req.body.maintenance_cost) || 0,
+      salvage_value: parseFloat(req.body.salvage_value) || 0,
+      useful_life_years: parseInt(req.body.useful_life_years) || 5
     };
-
-    const newAsset = await createAsset(assetData);
-
-    res.status(201).json({
-      success: true,
-      message: 'Asset created successfully',
-      asset: newAsset
-    });
+    const newAsset = await db.createAsset(assetData);
+    res.json({ success: true, message: 'Asset added!', asset: newAsset });
   } catch (error) {
-    console.error('Error adding asset:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error creating asset: ' + error.message 
-    });
+    console.error('addAsset error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
 async function getAssets(req, res) {
   try {
-    const filters = {};
-    
-    // Managers can only see assets in their department
-    if (req.user.role === 'Manager') {
-      filters.department = req.user.department;
+    let filter = {};
+    if (req.user.role !== 'Admin') {
+      filter.department = req.user.department;
     }
-    
-    // Optional status filter
-    if (req.query.status) {
-      filters.status = req.query.status;
-    }
-
-    const assets = await getAllAssets(filters);
-
-    res.json({
-      success: true,
-      count: assets.length,
-      assets
-    });
+    const assets = await db.getAllAssets(filter);
+    res.json({ success: true, assets });
   } catch (error) {
-    console.error('Error getting assets:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error loading assets: ' + error.message 
-    });
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+async function getAssetById(req, res) {
+  try {
+    const assetId = req.params.id;
+    const userDepartment = req.user.department;
+    let deptFilter = userDepartment;
+    if (req.user.role === 'Admin') {
+      deptFilter = null;
+    }
+    const asset = await db.getAssetById(assetId, deptFilter);
+    res.json({ success: true, asset });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+async function updateAsset(req, res) {
+  try {
+    const updated = await db.updateAssetById(req.params.id, req.body, req.user.userId);
+    res.json({ success: true, asset: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function deleteAsset(req, res) {
+  try {
+    const deleted = await db.deleteAssetById(req.params.id, req.user.userId);
+    res.json({ success: true, message: 'Asset soft-deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
 async function changeAssetStatus(req, res) {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (!status) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Status is required' 
-      });
-    }
-
-    const updatedAsset = await updateAssetStatus(id, status, req.user.userId);
-
-    res.json({
-      success: true,
-      message: 'Status updated successfully',
-      asset: updatedAsset
-    });
+    const updated = await db.updateAssetStatus(req.params.id, req.body.status);
+    res.json({ success: true, asset: updated });
   } catch (error) {
-    console.error('Error updating asset status:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error updating status: ' + error.message 
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
 module.exports = {
-  addAsset,
-  getAssets,
-  changeAssetStatus
+  addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus
 };

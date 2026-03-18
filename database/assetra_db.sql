@@ -3,7 +3,15 @@ CREATE DATABASE assetra_db;
 GO
 
 USE assetra_db;
+USE assetra_db;
+SELECT * FROM INFORMATION_SCHEMA.TABLES;
 GO
+
+
+
+CREATE LOGIN testuser WITH PASSWORD = 'Test@1234';
+CREATE USER testuser FOR LOGIN testuser;
+ALTER ROLE db_owner ADD MEMBER testuser;
 
 -- Users Table
 CREATE TABLE users (
@@ -32,7 +40,11 @@ CREATE TABLE assets (
     status NVARCHAR(20) NOT NULL CHECK (status IN ('Available', 'Allocated', 'Maintenance', 'Missing')),
     location NVARCHAR(100),
     department NVARCHAR(50),
-    created_by INT NOT NULL,\n    created_at DATETIME DEFAULT GETDATE(),\n    updated_at DATETIME DEFAULT GETDATE(),\n    maintenance_cost DECIMAL(10,2) DEFAULT 0,\n    salvage_value DECIMAL(10,2) DEFAULT 0,\n    useful_life_years INT DEFAULT 5,\n    FOREIGN KEY (created_by) REFERENCES users(user_id)\n);
+    created_by INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
 GO
 
 -- Audit Logs Table
@@ -48,7 +60,6 @@ CREATE TABLE audit_logs (
 );
 GO
 
--- Insert Sample Users (plain text passwords for development/learning)
 -- Password for both users: 'password123'
 INSERT INTO users (username, password_hash, full_name, email, role, department)
 VALUES 
@@ -57,3 +68,5 @@ VALUES
 GO
 
 
+select * from users where username='anna'
+select * from assets

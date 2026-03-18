@@ -8,8 +8,8 @@
 </head>
 <body>
     <header class="header">
-        <div class="header-left">
-            <div class="menu-icon menu-toggle">☰</div>
+            <div class="header-left">
+            <div class="menu-icon menu-toggle">≡</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
         <div class="header-right">
@@ -24,67 +24,77 @@
         <p class="department-info" id="departmentInfo"></p>
 
         <div class="stats-grid">
-            <!-- Total Assets Card -->
             <div class="stat-card">
                 <div class="stat-number" id="totalAssets">0</div>
                 <div class="stat-label">Total Assets</div>
             </div>
-
-            <!-- Total Users Card -->
             <div class="stat-card">
-                <div class="stat-number" id="totalUsers">0</div>
-                <div class="stat-label">Total Users</div>
+                <div class="stat-number" id="totalAssetValue">₨0</div>
+                <div class="stat-label">Total Value</div>
             </div>
-
-            <!-- Missing Assets Card -->
-            <div class="stat-card">
+                <div class="stat-card">
                 <div class="stat-number" id="missingAssets">0</div>
                 <div class="stat-label">Missing Assets</div>
             </div>
-
-            <!-- Assets Under Maintenance Card -->
             <div class="stat-card">
                 <div class="stat-number" id="maintenanceAssets">0</div>
                 <div class="stat-label">Assets under Maintenance</div>
             </div>
         </div>
 
-        <div class="bottom-section">
-            <!-- Asset Distribution Chart -->
-            <div class="chart-card">
-                <h3>Asset Distribution</h3>
-                <div class="chart-placeholder">
-                    <div class="bar-chart">
-                        <div class="bar" style="height: 80%;">
-                            <span class="bar-label">Available</span>
-                            <span class="bar-value" id="availableCount">0</span>
-                        </div>
-                        <div class="bar" style="height: 60%;">
-                            <span class="bar-label">Allocated</span>
-                            <span class="bar-value" id="allocatedCount">0</span>
-                        </div>
-                        <div class="bar" style="height: 40%;">
-                            <span class="bar-label">Maintenance</span>
-                            <span class="bar-value" id="maintenanceCount">0</span>
-                        </div>
-                        <div class="bar" style="height: 30%;">
-                            <span class="bar-label">Missing</span>
-                            <span class="bar-value" id="missingCount">0</span>
+        <div class="dashboard-layout">
+            <div class="left-column">
+                <div class="chart-card">
+                    <h3>Asset Distribution</h3>
+                    <div class="chart-placeholder">
+                        <div class="bar-chart">
+                            <div class="bar">
+                                <span class="bar-label">Available</span>
+                                <span class="bar-value" id="availableCount">0</span>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-label">Allocated</span>
+                                <span class="bar-value" id="allocatedCount">0</span>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-label">Maintenance</span>
+                                <span class="bar-value" id="maintenanceCount">0</span>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-label">Missing</span>
+                                <span class="bar-value" id="missingCount">0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="maintenance-card">
+                    <h3>Maintenance Cost</h3>
+                    <div class="metric-number-large" id="maintenanceCost">₨0</div>
+                </div>
             </div>
+            <div class="right-column">
+                <div class="metric-card">
+                    <h3>Compliance Overview</h3>
+                    <div class="metric-item compliance-circle-container">
+                        <div class="circle-container">
+                            <svg viewBox="0 0 320 320" class="compliance-circle">
+                                <circle class="circle-bg" cx="160" cy="160" r="120"></circle>
+                                <circle class="circle-progress" cx="160" cy="160" r="120" stroke-dasharray="0 754"></circle>
+                            </svg>
+                            <div class="circle-text" id="complianceScore">0%</div>
+                        </div>
+                        <div class="metric-label">Compliance Score</div>
+                    </div>
 
-            <!-- Quick Actions -->
-            <div class="actions-card">
-                <h3>Quick Actions</h3>
-                <div class="action-buttons">
-                    <button class="action-btn" onclick="window.location.href='/views/assets.html'">
-                        View All Assets
-                    </button>
-                    <button class="action-btn" onclick="window.location.href='/views/add-asset.html'">
-                        Add New Asset
-                    </button>
+                    <div class="bottom-metrics">
+                        <div class="metric-item small-metrics">
+                            <div class="metric-label">Audited Assets: <span class="metric-number" id="auditedCount">0</span></div>
+                        </div>
+                        <div class="metric-item small-metrics">
+                            <div class="metric-label">Maintained Assets: <span class="metric-number" id="maintainedCount">0</span></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

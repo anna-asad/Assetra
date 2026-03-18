@@ -24,10 +24,11 @@
 
     <main class="main-content">
         <div class="page-header">
-            <h2 class="page-title">Asset Management</h2>
+<h2 class="page-title">Manage Assets</h2>
             <div class="header-actions">
-                <button class="back-btn" onclick="window.location.href='/views/dashboard.html'">← Dashboard</button>
-                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">+ Add Asset</button>
+                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">Add Asset</button>
+                <button class="action-btn" onclick="editSelected()">Edit Asset</button>
+                <button class="action-btn" onclick="removeSelected()">Remove Asset</button>
             </div>
         </div>
 
@@ -49,13 +50,13 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Select</th>
                             <th>Asset Tag</th>
                             <th>Asset Name</th>
                             <th>Category</th>
                             <th>Status</th>
                             <th>Department</th>
                             <th>Location</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="assetsTableBody">

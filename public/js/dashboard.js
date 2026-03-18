@@ -27,6 +27,13 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     }
 });
 
+function formatPKRCurrency(value) {
+  return new Intl.NumberFormat('en-PK', {
+    style: 'currency',
+    currency: 'PKR'
+  }).format(value);
+}
+
 // Fetch dashboard statistics
 async function loadDashboardStats() {
     try {
@@ -50,9 +57,16 @@ async function loadDashboardStats() {
 
             // Update stat cards
             document.getElementById('totalAssets').textContent = stats.totalAssets || 0;
-            document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+            document.getElementById('totalAssetValue').textContent = formatPKRCurrency(stats.totalAssetValue || 0);
             document.getElementById('missingAssets').textContent = stats.statusBreakdown.Missing || 0;
             document.getElementById('maintenanceAssets').textContent = stats.statusBreakdown.Maintenance || 0;
+            
+            // New metrics
+            document.getElementById('maintenanceCost').textContent = formatPKRCurrency(stats.maintenanceCost || 0);
+            document.getElementById('complianceScore').textContent = (stats.complianceScore || 0).toFixed(1) + '%';
+            document.getElementById('complianceArc').style.strokeDasharray = (stats.complianceScore || 0) + ' 100';
+            document.getElementById('auditedCount').textContent = stats.auditedCount || 0;
+            document.getElementById('maintainedCount').textContent = stats.maintainedCount || 0;
 
             // Update bar chart
             document.getElementById('availableCount').textContent = stats.statusBreakdown.Available || 0;

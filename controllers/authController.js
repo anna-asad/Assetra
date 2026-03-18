@@ -79,10 +79,17 @@ async function signup(req, res) {
   try {
     const { username, email, password, role, department, passkey } = req.body;
 
-    if (!username || !email || !password || !role || !department || !passkey) {
+    if (!username || !email || !password || !role || !passkey) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please fill in all fields' 
+        message: 'Username, email, password, role, and passkey are required' 
+      });
+    }
+
+    if (role !== 'Admin' && (!department || department.trim() === '')) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Department is required for non-Admin roles' 
       });
     }
 
@@ -109,18 +116,20 @@ async function signup(req, res) {
       });
     }
 
-    const newUser = await createUser({
+    const userData = {
       username,
       email,
       password,
       role,
       full_name: username,
-      department
-    });
+      department: role === 'Admin' ? null : department
+    };
+
+    const newUser = await createUser(userData);
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully',
+      message: `Account created successfully as ${role}`,
       user: {
         userId: newUser.user_id,
         username: newUser.username,
@@ -136,6 +145,7 @@ async function signup(req, res) {
     });
   }
 }
+
 
 module.exports = {
   login,

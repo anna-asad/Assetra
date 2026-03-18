@@ -28,6 +28,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 let allAssets = [];
+let selectedAssetId = null;
 
 // Load assets
 async function loadAssets(statusFilter = '') {
@@ -86,23 +87,22 @@ function displayAssets(assets) {
     assets.forEach(asset => {
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td><input type="radio" name="selectedAsset" data-asset-id="${asset.asset_id}" ${selectedAssetId === asset.asset_id ? 'checked' : ''}></td>
             <td>${asset.asset_tag}</td>
             <td>${asset.asset_name}</td>
             <td>${asset.category}</td>
             <td><span class="status-badge status-${asset.status.toLowerCase()}">${asset.status}</span></td>
             <td>${asset.department || '-'}</td>
             <td>${asset.location || '-'}</td>
-            <td>
-                <select class="status-dropdown" onchange="updateStatus(${asset.asset_id}, this.value)">
-                    <option value="">Change Status</option>
-                    <option value="Available" ${asset.status === 'Available' ? 'selected' : ''}>Available</option>
-                    <option value="Allocated" ${asset.status === 'Allocated' ? 'selected' : ''}>Allocated</option>
-                    <option value="Maintenance" ${asset.status === 'Maintenance' ? 'selected' : ''}>Maintenance</option>
-                    <option value="Missing" ${asset.status === 'Missing' ? 'selected' : ''}>Missing</option>
-                </select>
-            </td>
         `;
         tbody.appendChild(row);
+    });
+
+    // Add selection listener
+    tbody.querySelectorAll('input[name="selectedAsset"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            selectedAssetId = e.target.dataset.assetId;
+        });
     });
     
     assetsTable.style.display = 'block';
@@ -151,5 +151,62 @@ async function updateStatus(assetId, newStatus) {
     }
 }
 
+// New button functions
+function editSelected() {
+    if (!selectedAssetId) {
+        alert('Please select an asset to edit');
+        return;
+    }
+    // Store selected asset ID and redirect to edit form
+    localStorage.setItem('editingAssetId', selectedAssetId);
+    window.location.href = '/views/add-asset.html?edit=true';
+}
+
+async function removeSelected() {
+    if (!selectedAssetId) {
+        alert('Please select an asset to remove');
+        return;
+    }
+    if (!confirm('Are you sure you want to permanently delete this asset?')) return;
+    
+    try {
+        const response = await fetch(`/api/assets/${selectedAssetId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            loadAssets(document.getElementById('statusFilter').value);
+            selectedAssetId = null;
+            alert('Asset deleted successfully');
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Failed to delete asset');
+        }
+    } catch (error) {
+        console.error('Error deleting asset:', error);
+        alert('Connection error. Please try again.');
+    }
+}
+
+async function markMaintenance() {
+    if (!selectedAssetId) {
+        alert('Please select an asset');
+        return;
+    }
+    await updateStatus(selectedAssetId, 'Maintenance');
+}
+
+async function markMissing() {
+    if (!selectedAssetId) {
+        alert('Please select an asset');
+        return;
+    }
+    await updateStatus(selectedAssetId, 'Missing');
+}
+
 // Load assets on page load
 window.addEventListener('DOMContentLoaded', () => loadAssets());
+

@@ -1,21 +1,29 @@
-const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalUsers } = require('../models/database');
+const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore } = require('../models/database');
 
 async function getDashboardStats(req, res) {
   try {
     const userRole = req.user.role;
     const userDepartment = req.user.department;
 
-    let totalAssets, assetsByStatus;
+    let totalAssets, assetsByStatus, maintenanceCost, depreciation, auditedCount, maintainedCount, complianceScore, totalAssetValue;
 
-    if (userRole === 'Manager') {
-      totalAssets = await getTotalAssetsByDepartment(userDepartment);
-      assetsByStatus = await getAssetsByStatusAndDepartment(userDepartment);
-    } else {
+    if (userRole === 'Admin') {
       totalAssets = await getTotalAssets();
       assetsByStatus = await getAssetsByStatus();
+      maintenanceCost = await getMaintenanceCost();
+      auditedCount = await getAuditedCount();
+      maintainedCount = await getMaintainedCount();
+      complianceScore = await getComplianceScore();
+      totalAssetValue = await getTotalAssetValue();
+    } else if (userRole === 'Manager') {
+      totalAssets = await getTotalAssetsByDepartment(userDepartment);
+      assetsByStatus = await getAssetsByStatusAndDepartment(userDepartment);
+      maintenanceCost = await getMaintenanceCost(userDepartment);
+      auditedCount = await getAuditedCount(userDepartment);
+      maintainedCount = await getMaintainedCount(userDepartment);
+      complianceScore = await getComplianceScore(userDepartment);
+      totalAssetValue = await getTotalAssetValue(userDepartment);
     }
-
-    const totalUsers = await getTotalUsers();
 
     const statusBreakdown = {
       Available: 0,
@@ -32,9 +40,14 @@ async function getDashboardStats(req, res) {
       success: true,
       stats: {
         totalAssets,
-        totalUsers,
+        totalAssetValue,
         statusBreakdown,
-        department: userRole === 'Manager' ? userDepartment : 'All Departments'
+        maintenanceCost,
+        depreciation,
+        auditedCount,
+        maintainedCount,
+        complianceScore,
+        department: userRole === 'Admin' ? 'All Departments' : userDepartment
       }
     });
   } catch (error) {
@@ -45,6 +58,7 @@ async function getDashboardStats(req, res) {
     });
   }
 }
+
 
 module.exports = {
   getDashboardStats

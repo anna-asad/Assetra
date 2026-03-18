@@ -16,13 +16,7 @@ function initSidebar() {
                 <li>
                     <a href="/views/assets.html" class="${currentPage.includes('assets') ? 'active' : ''}">
                         <span class="menu-icon">📋</span>
-                        <span class="menu-text">Assets</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/views/add-asset.html" class="${currentPage.includes('add-asset') ? 'active' : ''}">
-                        <span class="menu-icon">➕</span>
-                        <span class="menu-text">Add Asset</span>
+                        <span class="menu-text">Manage Assets</span>
                     </a>
                 </li>
                 <li>
@@ -81,6 +75,26 @@ function initSidebar() {
         });
     }
 }
+
+// Dropdown toggle functionality
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.dropdown-toggle')) {
+        e.preventDefault();
+        const dropdown = e.target.closest('.dropdown');
+        dropdown.classList.toggle('open');
+    } else if (e.target.closest('.submenu a')) {
+        // Close dropdown when submenu item clicked
+        const dropdown = e.target.closest('.dropdown');
+        if (dropdown) dropdown.classList.remove('open');
+    }
+});
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.sidebar')) {
+        document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
 
 // Initialize sidebar when DOM is ready
 if (document.readyState === 'loading') {

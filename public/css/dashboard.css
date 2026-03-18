@@ -139,11 +139,127 @@ body {
 }
 
 /* Bottom Section */
-.bottom-section {
+.dashboard-layout {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 20px;
     margin-top: 30px;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 400px;
+}
+
+.bottom-metrics {
+    margin-top: auto;
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.small-metrics {
+    font-size: 14px;
+    text-align: center;
+}
+
+.small-metrics .metric-number {
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.metric-number, .metric-number-large {
+    font-size: 36px;
+    font-weight: bold;
+    color: #e8b4e8;
+    margin-bottom: 5px;
+}
+
+.metric-number-large {
+    font-size: 48px;
+}
+
+.metric-label {
+    font-size: 14px;
+    color: #ccc;
+    text-align: center;
+}
+
+.compliance-circle-container .metric-number {
+    display: none;
+}
+
+.circle-container {
+    position: relative;
+    width: 240px;
+    height: 240px;
+}
+
+.compliance-circle {
+    width: 240px;
+    height: 240px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #555;
+    stroke-width: 8;
+}
+
+.circle-progress {
+    fill: none;
+    stroke: url(#gradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 0 327;
+    transition: stroke-dasharray 1s ease;
+}
+
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 36px;
+    font-weight: bold;
+    color: #e8b4e8;
+}
+
+.maintenance-card {
+    background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.maintenance-card h3 {
+    color: #e8b4e8;
+    margin-bottom: 15px;
 }
 
 .chart-card,

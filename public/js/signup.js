@@ -2,6 +2,17 @@ const signupForm = document.getElementById('signupForm');
 const errorMessage = document.getElementById('errorMessage');
 const successMessage = document.getElementById('successMessage');
 
+// Listen for role change to disable department for Admin
+document.getElementById('role').addEventListener('change', (e) => {
+    const departmentSelect = document.getElementById('department');
+    if (e.target.value === 'Admin') {
+        departmentSelect.disabled = true;
+        departmentSelect.value = '';
+    } else {
+        departmentSelect.disabled = false;
+    }
+});
+
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
