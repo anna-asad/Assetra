@@ -24,11 +24,11 @@
         <p class="department-info" id="departmentInfo"></p>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card clickable-card" id="totalAssetsCard" style="cursor: pointer;">
                 <div class="stat-number" id="totalAssets">0</div>
                 <div class="stat-label">Total Assets</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card clickable-card" id="totalValueCard" style="cursor: pointer;">
                 <div class="stat-number" id="totalAssetValue">₨0</div>
                 <div class="stat-label">Total Value</div>
             </div>
@@ -99,6 +99,38 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal for Assets by Value -->
+    <div id="assetsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assets by Value</h2>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalLoadingMessage" class="loading-message">Loading assets...</div>
+                <div id="modalErrorMessage" class="error-message"></div>
+                <div id="assetsValueTable" class="assets-modal-table" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Asset Name</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsValueTableBody">
+                            <!-- Assets will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noAssetsValue" class="no-assets" style="display: none;">
+                    <p>No assets found</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/sidebar.js"></script>
     <script src="/js/dashboard.js"></script>

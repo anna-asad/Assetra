@@ -32,7 +32,16 @@ CREATE TABLE assets (
     status NVARCHAR(20) NOT NULL CHECK (status IN ('Available', 'Allocated', 'Maintenance', 'Missing')),
     location NVARCHAR(100),
     department NVARCHAR(50),
-    created_by INT NOT NULL,\n    created_at DATETIME DEFAULT GETDATE(),\n    updated_at DATETIME DEFAULT GETDATE(),\n    maintenance_cost DECIMAL(10,2) DEFAULT 0,\n    salvage_value DECIMAL(10,2) DEFAULT 0,\n    useful_life_years INT DEFAULT 5,\n    FOREIGN KEY (created_by) REFERENCES users(user_id)\n);
+    created_by INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    updated_by INT,
+    maintenance_cost DECIMAL(10,2) DEFAULT 0,
+    salvage_value DECIMAL(10,2) DEFAULT 0,
+    useful_life_years INT DEFAULT 5,
+    FOREIGN KEY (created_by) REFERENCES users(user_id),
+    FOREIGN KEY (updated_by) REFERENCES users(user_id)
+);
 GO
 
 -- Audit Logs Table

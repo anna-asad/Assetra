@@ -9,6 +9,97 @@ if (!token) {
 // Display user name
 document.getElementById('userName').textContent = user.fullName || user.username || 'User';
 
+// Total Assets card click - navigate to assets list
+document.getElementById('totalAssetsCard').addEventListener('click', () => {
+    window.location.href = '/views/assets.html';
+});
+
+// Total Value card click - show modal with assets
+document.getElementById('totalValueCard').addEventListener('click', () => {
+    openAssetsModal();
+});
+
+// Modal functionality
+const modal = document.getElementById('assetsModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+
+closeModalBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+// Close modal when clicking outside
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+async function openAssetsModal() {
+    modal.style.display = 'flex';
+    await loadAssetsForValue();
+}
+
+async function loadAssetsForValue() {
+    const loadingMessage = document.getElementById('modalLoadingMessage');
+    const errorMessage = document.getElementById('modalErrorMessage');
+    const assetsTable = document.getElementById('assetsValueTable');
+    const noAssets = document.getElementById('noAssetsValue');
+    
+    loadingMessage.style.display = 'block';
+    errorMessage.style.display = 'none';
+    assetsTable.style.display = 'none';
+    noAssets.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/assets', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayAssetsForValue(data.assets);
+        } else {
+            errorMessage.textContent = data.message || 'Failed to load assets';
+            errorMessage.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading assets:', error);
+        errorMessage.textContent = 'Connection error. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        loadingMessage.style.display = 'none';
+    }
+}
+
+function displayAssetsForValue(assets) {
+    const assetsTable = document.getElementById('assetsValueTable');
+    const noAssets = document.getElementById('noAssetsValue');
+    const tbody = document.getElementById('assetsValueTableBody');
+    
+    if (assets.length === 0) {
+        noAssets.style.display = 'block';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    assets.forEach(asset => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${asset.asset_name}</td>
+            <td>${asset.department || '-'}</td>
+            <td><span class="status-badge status-${asset.status.toLowerCase()}">${asset.status}</span></td>
+            <td>${formatPKRCurrency(asset.purchase_cost || 0)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    assetsTable.style.display = 'block';
+}
+
 // Logout functionality
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     try {
