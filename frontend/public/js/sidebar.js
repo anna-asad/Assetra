@@ -13,7 +13,7 @@ function initSidebar() {
                         <span class="menu-text">Dashboard</span>
                     </a>
                 </li>
-                <li>
+                <li data-role="Manager" style="display: ${user.role === 'Admin' || user.role === 'Manager' ? 'block' : 'none'}">
                     <a href="/views/assets.html" class="${currentPage.includes('assets') ? 'active' : ''}">
                         <span class="menu-icon">📋</span>
                         <span class="menu-text">Manage Assets</span>
@@ -25,7 +25,7 @@ function initSidebar() {
                         <span class="menu-text">Profile</span>
                     </a>
                 </li>
-                <li data-role="Admin" style="display: ${user.role === 'Admin' || user.role === 'Viewer' ? 'block' : 'none'}">
+                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
                     <a href="/views/settings.html" class="${currentPage.includes('settings') ? 'active' : ''}">
                         <span class="menu-icon">⚙️</span>
                         <span class="menu-text">Settings</span>

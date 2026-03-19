@@ -451,6 +451,8 @@ module.exports = {
   getTotalUsers,
   createAsset,
   getAllAssets,
+  getAssetById,
+  updateAssetById,
   deleteAssetById,
   updateAssetStatus,
   getTotalAssets,

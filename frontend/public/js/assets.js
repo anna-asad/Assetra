@@ -30,6 +30,12 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 let allAssets = [];
 let selectedAssetId = null;
 
+// Function to add a new asset - clears edit mode
+function addNewAsset() {
+    localStorage.removeItem('editingAssetId');
+    window.location.href = '/views/add-asset.html';
+}
+
 // Load assets
 async function loadAssets(statusFilter = '') {
     const loadingMessage = document.getElementById('loadingMessage');

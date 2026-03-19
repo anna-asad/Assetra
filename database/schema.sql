@@ -56,4 +56,4 @@ VALUES
 ('manager1', 'password123', 'John Manager', 'manager@assetra.com', 'Manager', 'Operations');
 GO
 
-
+select * from users;

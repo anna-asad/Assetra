@@ -6,9 +6,6 @@ if (!token) {
     window.location.href = '/views/login.html';
 }
 
-// Display user name
-document.getElementById('userName').textContent = user.fullName || user.username || 'User';
-
 // Global close function
 function closeErrorModal() {
   const errorMessage = document.getElementById('errorMessage');
@@ -16,170 +13,247 @@ function closeErrorModal() {
   errorMessage.innerHTML = '';
 }
 
-// Logout functionality
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try {
-        await fetch('/api/auth/logout', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/views/login.html';
-    }
-});
-
 // Check if editing existing asset
 const urlParams = new URLSearchParams(window.location.search);
 const editingAssetId = localStorage.getItem('editingAssetId') || urlParams.get('edit') || urlParams.get('assetId');
 let isEditing = !!editingAssetId;
 
-if (isEditing) {
-    document.querySelector('.page-title').textContent = 'Edit Asset';
-    document.querySelector('.btn-primary').textContent = 'Update Asset';
-}
+console.log('Editing Asset ID:', editingAssetId);
+console.log('Is Editing:', isEditing);
 
 // Load asset data for editing
 async function loadAssetForEdit(assetId) {
     try {
+        console.log('Fetching asset with ID:', assetId);
         const response = await fetch(`/api/assets/${assetId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+        
         const data = await response.json();
+        console.log('API Response:', data);
+        
         if (data.success && data.asset) {
             const asset = data.asset;
-            document.getElementById('asset_tag').value = asset.asset_tag;
-            document.getElementById('asset_name').value = asset.asset_name;
-            document.getElementById('category').value = asset.category;
-            document.getElementById('status').value = asset.status;
-            document.getElementById('purchase_date').value = asset.purchase_date || '';
-            document.getElementById('purchase_cost').value = asset.purchase_cost || '';
-            document.getElementById('location').value = asset.location || '';
-            document.getElementById('department').value = asset.department || '';
-            document.getElementById('description').value = asset.description || '';
+            console.log('Populating form with asset:', asset);
+            
+            // Set all form field values
+            const setFieldValue = (fieldId, value) => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = value || '';
+                    console.log(`Set ${fieldId} to:`, field.value);
+                } else {
+                    console.warn(`Field not found: ${fieldId}`);
+                }
+            };
+            
+            setFieldValue('asset_tag', asset.asset_tag);
+            setFieldValue('asset_name', asset.asset_name);
+            setFieldValue('category', asset.category);
+            setFieldValue('status', asset.status);
+            setFieldValue('purchase_date', asset.purchase_date ? asset.purchase_date.split('T')[0] : '');
+            setFieldValue('purchase_cost', asset.purchase_cost);
+            setFieldValue('location', asset.location);
+            setFieldValue('department', asset.department);
+            setFieldValue('description', asset.description);
+        } else {
+            console.error('Failed to load asset data:', data);
         }
     } catch (error) {
         console.error('Error loading asset:', error);
     }
 }
 
-// Load asset if editing
-if (isEditing && editingAssetId) {
-    loadAssetForEdit(editingAssetId);
+// Initialize the page when DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM Content Loaded');
+    
+    // Display user name
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+        userNameElement.textContent = user.fullName || user.username || 'User';
+    }
+    
+    // Clear localStorage if coming from assets page without edit
+    if (!editingAssetId) {
+        localStorage.removeItem('editingAssetId');
+    }
+    
+    // Update page title and button if editing
+    if (isEditing) {
+        const pageTitle = document.querySelector('.page-title');
+        const submitBtn = document.querySelector('.btn-primary');
+        
+        if (pageTitle) pageTitle.textContent = 'Edit Asset';
+        if (submitBtn) submitBtn.textContent = 'Update Asset';
+        
+        // Load the asset data
+        console.log('Loading asset data for edit mode');
+        await loadAssetForEdit(editingAssetId);
+    } else {
+        // In add mode - clear any previous form data
+        const assetForm = document.getElementById('assetForm');
+        if (assetForm) {
+            assetForm.reset();
+            console.log('Form cleared for new asset entry');
+        }
+        
+        const pageTitle = document.querySelector('.page-title');
+        const submitBtn = document.querySelector('.btn-primary');
+        
+        if (pageTitle) pageTitle.textContent = 'Add New Asset';
+        if (submitBtn) submitBtn.textContent = 'Add Asset';
+    }
+    
+    // Setup form submission
+    setupFormSubmission();
+    
+    // Setup logout
+    setupLogout();
+    
+    // Setup sidebar
+    if (window.initSidebar) {
+        window.initSidebar();
+    }
+});
+
+// Logout functionality
+function setupLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/views/login.html';
+            }
+        });
+    }
 }
 
 // Handle form submission
-const assetForm = document.getElementById('assetForm');
-const errorMessage = document.getElementById('errorMessage');
-const successMessage = document.getElementById('successMessage');
-
-assetForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+function setupFormSubmission() {
+    const assetForm = document.getElementById('assetForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
     
-    // Hide previous messages
-    errorMessage.classList.remove('error-modal', 'show');
-    successMessage.classList.remove('show');
-    
-    // Get form data
-    const formData = {
-        asset_tag: document.getElementById('asset_tag').value.trim(),
-        asset_name: document.getElementById('asset_name').value.trim(),
-        category: document.getElementById('category').value,
-        status: document.getElementById('status').value,
-        purchase_date: document.getElementById('purchase_date').value || null,
-        purchase_cost: document.getElementById('purchase_cost').value,
-        location: document.getElementById('location').value || null,
-        department: document.getElementById('department').value || null,
-        description: document.getElementById('description').value || null
-    };
-    
-    // Frontend validation
-    if (!formData.asset_tag || !formData.asset_name) {
-      errorMessage.innerHTML = `
-        <div class="modal-content">
-          <h3>Asset Adding Unsuccessful</h3>
-          <p>Asset tag and name are required</p>
-          <button class="close-btn" onclick="closeErrorModal()">Close</button>
-        </div>
-      `;
-      errorMessage.classList.add('error-modal', 'show');
-      return;
+    if (!assetForm) {
+        console.error('Asset form not found');
+        return;
     }
     
-    const purchaseCost = parseFloat(formData.purchase_cost);
-    if (!formData.purchase_cost || isNaN(purchaseCost) || purchaseCost <= 0) {
-      errorMessage.innerHTML = `
-        <div class="modal-content">
-          <h3>Asset Adding Unsuccessful</h3>
-          <p>Purchase price is mandatory and must be a positive number</p>
-          <button class="close-btn" onclick="closeErrorModal()">Close</button>
-        </div>
-      `;
-      errorMessage.classList.add('error-modal', 'show');
-      return;
-    }
-    
-    // Disable submit button
-    const submitBtn = assetForm.querySelector('.btn-primary');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = isEditing ? 'Updating...' : 'Adding...';
-    
-    try {
-        const url = isEditing ? `/api/assets/${editingAssetId}` : '/api/assets';
-        const method = isEditing ? 'PATCH' : 'POST';
+    assetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
-        const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(formData)
-        });
+        // Hide previous messages
+        errorMessage.classList.remove('error-modal', 'show');
+        successMessage.classList.remove('show');
         
-        const data = await response.json();
+        // Get form data
+        const formData = {
+            asset_tag: document.getElementById('asset_tag').value.trim(),
+            asset_name: document.getElementById('asset_name').value.trim(),
+            category: document.getElementById('category').value,
+            status: document.getElementById('status').value,
+            purchase_date: document.getElementById('purchase_date').value || null,
+            purchase_cost: document.getElementById('purchase_cost').value,
+            location: document.getElementById('location').value || null,
+            department: document.getElementById('department').value || null,
+            description: document.getElementById('description').value || null
+        };
         
-        if (data.success) {
-            successMessage.textContent = isEditing ? 'Asset updated successfully!' : 'Asset added successfully!';
-            successMessage.classList.add('show');
-            
-            localStorage.removeItem('editingAssetId');
-            
-            // Reset form and redirect
-            assetForm.reset();
-            setTimeout(() => {
-                window.location.href = '/views/assets.html';
-            }, 2000);
-        } else {
+        // Frontend validation
+        if (!formData.asset_tag || !formData.asset_name) {
             errorMessage.innerHTML = `
-              <div class="modal-content">
-                <h3>Asset Adding Unsuccessful</h3>
-                <p>${data.message}</p>
-                <button class="close-btn" onclick="closeErrorModal()">Close</button>
-              </div>
+                <div class="modal-content">
+                    <h3>Asset Adding Unsuccessful</h3>
+                    <p>Asset tag and name are required</p>
+                    <button class="close-btn" onclick="closeErrorModal()">Close</button>
+                </div>
             `;
             errorMessage.classList.add('error-modal', 'show');
+            return;
         }
-    } catch (error) {
-        console.error('Error saving asset:', error);
-        errorMessage.innerHTML = `
-          <div class="modal-content">
-            <h3>Asset Adding Unsuccessful</h3>
-            <p>Connection error. Please try again.</p>
-            <button class="close-btn" onclick="closeErrorModal()">Close</button>
-          </div>
-        `;
-        errorMessage.classList.add('error-modal', 'show');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-    }
-});
+        
+        const purchaseCost = parseFloat(formData.purchase_cost);
+        if (!formData.purchase_cost || isNaN(purchaseCost) || purchaseCost <= 0) {
+            errorMessage.innerHTML = `
+                <div class="modal-content">
+                    <h3>Asset Adding Unsuccessful</h3>
+                    <p>Purchase price is mandatory and must be a positive number</p>
+                    <button class="close-btn" onclick="closeErrorModal()">Close</button>
+                </div>
+            `;
+            errorMessage.classList.add('error-modal', 'show');
+            return;
+        }
+        
+        // Disable submit button
+        const submitBtn = assetForm.querySelector('.btn-primary');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = isEditing ? 'Updating...' : 'Adding...';
+        
+        try {
+            const url = isEditing ? `/api/assets/${editingAssetId}` : '/api/assets';
+            const method = isEditing ? 'PATCH' : 'POST';
+            
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                successMessage.textContent = isEditing ? 'Asset updated successfully!' : 'Asset added successfully!';
+                successMessage.classList.add('show');
+                
+                localStorage.removeItem('editingAssetId');
+                
+                // Reset form and redirect
+                assetForm.reset();
+                setTimeout(() => {
+                    window.location.href = '/views/assets.html';
+                }, 2000);
+            } else {
+                errorMessage.innerHTML = `
+                    <div class="modal-content">
+                        <h3>Asset Adding Unsuccessful</h3>
+                        <p>${data.message}</p>
+                        <button class="close-btn" onclick="closeErrorModal()">Close</button>
+                    </div>
+                `;
+                errorMessage.classList.add('error-modal', 'show');
+            }
+        } catch (error) {
+            console.error('Error saving asset:', error);
+            errorMessage.innerHTML = `
+                <div class="modal-content">
+                    <h3>Asset Adding Unsuccessful</h3>
+                    <p>Connection error. Please try again.</p>
+                    <button class="close-btn" onclick="closeErrorModal()">Close</button>
+                </div>
+            `;
+            errorMessage.classList.add('error-modal', 'show');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+}

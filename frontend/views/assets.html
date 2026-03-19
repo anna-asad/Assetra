@@ -26,7 +26,7 @@
         <div class="page-header">
 <h2 class="page-title">Manage Assets</h2>
             <div class="header-actions">
-                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">Add Asset</button>
+                <button class="add-btn" onclick="addNewAsset()">Add Asset</button>
                 <button class="action-btn" onclick="editSelected()">Edit Asset</button>
                 <button class="action-btn" onclick="removeSelected()">Remove Asset</button>
             </div>
@@ -67,7 +67,7 @@
 
             <div id="noAssets" class="no-assets" style="display: none;">
                 <p>No assets found</p>
-                <button class="add-btn" onclick="window.location.href='/views/add-asset.html'">+ Add Your First Asset</button>
+                <button class="add-btn" onclick="addNewAsset()">+ Add Your First Asset</button>
             </div>
         </div>
     </main>
