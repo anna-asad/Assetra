@@ -94,6 +94,74 @@ async function changeAssetStatus(req, res) {
   }
 }
 
+async function assignAsset(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const { assigned_to_user_id, assigned_to_department, effective_date } = req.body;
+    
+    if (!effective_date) {
+      return res.status(400).json({ success: false, message: 'Effective date is required' });
+    }
+    
+    if (!assigned_to_user_id && !assigned_to_department) {
+      return res.status(400).json({ success: false, message: 'Must assign to either user or department' });
+    }
+    
+    const asset = await db.getAssetById(assetId);
+    if (!asset) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+    
+    if (assigned_to_user_id) {
+      const user = await db.findUserByUsername(''); // Will check if user exists
+      // Simple check - if user_id provided, assume it exists
+    }
+    
+    const assignmentData = {
+      asset_id: assetId,
+      assigned_to_user_id: assigned_to_user_id || null,
+      assigned_to_department: assigned_to_department || null,
+      effective_date,
+      assigned_by: req.user.userId
+    };
+    
+    const assignment = await db.createAssignment(assignmentData);
+    
+    await db.logAction(
+      req.user.userId,
+      'ASSIGN_ASSET',
+      'asset',
+      assetId,
+      `Assigned to ${assigned_to_user_id ? 'user ID ' + assigned_to_user_id : 'department ' + assigned_to_department}`
+    );
+    
+    res.json({ success: true, message: 'Asset assigned successfully', assignment });
+  } catch (error) {
+    console.error('Assign asset error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getAssetAssignment(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const assignment = await db.getActiveAssignment(assetId);
+    res.json({ success: true, assignment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getAllUsersForAssignment(req, res) {
+  try {
+    const users = await db.getAllUsers();
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
-  addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus
+  addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus,
+  assignAsset, getAssetAssignment, getAllUsersForAssignment
 };

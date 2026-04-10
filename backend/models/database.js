@@ -424,6 +424,87 @@ query = query.replace('FROM assets', 'FROM assets WHERE department = @department
   }
 }
 
+// ==================== ASSIGNMENT FUNCTIONS ====================
+async function getAllUsers() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query('SELECT user_id, username, full_name, department FROM users WHERE is_active = 1 ORDER BY full_name');
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting all users:', error);
+    throw error;
+  }
+}
+
+async function createAssignment(assignmentData) {
+  try {
+    const pool = await getConnection();
+    
+    // Deactivate previous assignments for this asset
+    await pool.request()
+      .input('asset_id', sql.Int, assignmentData.asset_id)
+      .query('UPDATE asset_assignments SET is_active = 0 WHERE asset_id = @asset_id AND is_active = 1');
+    
+    // Create new assignment
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assignmentData.asset_id)
+      .input('assigned_to_user_id', sql.Int, assignmentData.assigned_to_user_id || null)
+      .input('assigned_to_department', sql.NVarChar, assignmentData.assigned_to_department || null)
+      .input('effective_date', sql.Date, assignmentData.effective_date)
+      .input('assigned_by', sql.Int, assignmentData.assigned_by)
+      .query(`
+        INSERT INTO asset_assignments (asset_id, assigned_to_user_id, assigned_to_department, effective_date, assigned_by)
+        OUTPUT INSERTED.*
+        VALUES (@asset_id, @assigned_to_user_id, @assigned_to_department, @effective_date, @assigned_by)
+      `);
+    
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error creating assignment:', error);
+    throw error;
+  }
+}
+
+async function getActiveAssignment(assetId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .query(`
+        SELECT aa.*, u.full_name as assigned_to_name, u.username, ab.full_name as assigned_by_name
+        FROM asset_assignments aa
+        LEFT JOIN users u ON aa.assigned_to_user_id = u.user_id
+        LEFT JOIN users ab ON aa.assigned_by = ab.user_id
+        WHERE aa.asset_id = @asset_id AND aa.is_active = 1
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error getting active assignment:', error);
+    throw error;
+  }
+}
+
+async function getAssignmentHistory(assetId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .query(`
+        SELECT aa.*, u.full_name as assigned_to_name, ab.full_name as assigned_by_name
+        FROM asset_assignments aa
+        LEFT JOIN users u ON aa.assigned_to_user_id = u.user_id
+        LEFT JOIN users ab ON aa.assigned_by = ab.user_id
+        WHERE aa.asset_id = @asset_id
+        ORDER BY aa.created_at DESC
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting assignment history:', error);
+    throw error;
+  }
+}
+
 // ==================== AUDIT FUNCTIONS ====================
 async function logAction(userId, action, entityType, entityId, details) {
   try {
@@ -449,6 +530,7 @@ module.exports = {
   findUserByEmail,
   createUser,
   getTotalUsers,
+  getAllUsers,
   createAsset,
   getAllAssets,
   getAssetById,
@@ -460,6 +542,9 @@ module.exports = {
   getTotalAssetsByDepartment,
   getAssetsByStatusAndDepartment,
   getTotalAssetValue,
+  createAssignment,
+  getActiveAssignment,
+  getAssignmentHistory,
   logAction,
   getMaintenanceCost,
   getDepreciation,

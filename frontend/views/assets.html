@@ -27,6 +27,7 @@
 <h2 class="page-title">Manage Assets</h2>
             <div class="header-actions">
                 <button class="add-btn" onclick="addNewAsset()">Add Asset</button>
+                <button class="action-btn" onclick="assignSelected()">Assign Asset</button>
                 <button class="action-btn" onclick="editSelected()">Edit Asset</button>
                 <button class="action-btn" onclick="removeSelected()">Remove Asset</button>
             </div>
@@ -57,6 +58,7 @@
                             <th>Status</th>
                             <th>Department</th>
                             <th>Location</th>
+                            <th>Assigned To</th>
                         </tr>
                     </thead>
                     <tbody id="assetsTableBody">
@@ -71,6 +73,53 @@
             </div>
         </div>
     </main>
+
+    <!-- Assignment Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAssignModal()">&times;</span>
+            <h2>Assign Asset</h2>
+            <form id="assignForm">
+                <div class="form-group">
+                    <label>Assign To:</label>
+                    <select id="assignType" onchange="toggleAssignFields()">
+                        <option value="user">Employee</option>
+                        <option value="department">Department</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="userField">
+                    <label>Select Employee:</label>
+                    <select id="assignedUser" required>
+                        <option value="">-- Select Employee --</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="departmentField" style="display: none;">
+                    <label>Select Department:</label>
+                    <select id="assignedDepartment">
+                        <option value="">-- Select Department --</option>
+                        <option value="IT">IT</option>
+                        <option value="Operations">Operations</option>
+                        <option value="Finance">Finance</option>
+                        <option value="HR">HR</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Marketing">Marketing</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Effective Date:</label>
+                    <input type="date" id="effectiveDate" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Assign</button>
+                    <button type="button" class="cancel-btn" onclick="closeAssignModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="/js/sidebar.js"></script>
     <script src="/js/assets.js"></script>

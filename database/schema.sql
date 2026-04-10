@@ -57,6 +57,22 @@ CREATE TABLE audit_logs (
 );
 GO
 
+-- Asset Assignments Table
+CREATE TABLE asset_assignments (
+    assignment_id INT PRIMARY KEY IDENTITY(1,1),
+    asset_id INT NOT NULL,
+    assigned_to_user_id INT,
+    assigned_to_department NVARCHAR(50),
+    effective_date DATE NOT NULL,
+    assigned_by INT NOT NULL,
+    is_active BIT DEFAULT 1,
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
+    FOREIGN KEY (assigned_to_user_id) REFERENCES users(user_id),
+    FOREIGN KEY (assigned_by) REFERENCES users(user_id)
+);
+GO
+
 -- Insert Sample Users (plain text passwords for development/learning)
 -- Password for both users: 'password123'
 INSERT INTO users (username, password_hash, full_name, email, role, department)
