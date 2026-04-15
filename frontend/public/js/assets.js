@@ -79,43 +79,42 @@ async function loadAssets(statusFilter = '') {
     }
 }
 
-function displayAssets(assets) {
+async function displayAssets(assets) {
     const assetsTable = document.getElementById('assetsTable');
     const noAssets = document.getElementById('noAssets');
     const tbody = document.getElementById('assetsTableBody');
     
     if (assets.length === 0) {
         noAssets.style.display = 'block';
+        assetsTable.style.display = 'none';
         return;
     }
     
-    tbody.innerHTML = '';
+    noAssets.style.display = 'none';
+    assetsTable.style.display = 'block';
+    tbody.innerHTML = ''; // Always clear first
     
-    // Fetch assignments and health for all assets
-    assets.forEach(async (asset) => {
-        const row = document.createElement('tr');
-        
-        // Fetch assignment info
+    // Use Promise.all to wait for all API calls
+    const assetDetails = await Promise.all(assets.map(async (asset) => {
         let assignedTo = 'Unassigned';
+        let healthBadge = '<span class="health-badge health-unknown">N/A</span>';
+        
         try {
+            // Assignment
             const assignResponse = await fetch(`/api/assets/${asset.asset_id}/assignment`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const assignData = await assignResponse.json();
             if (assignData.success && assignData.assignment) {
-                if (assignData.assignment.assigned_to_name) {
-                    assignedTo = assignData.assignment.assigned_to_name;
-                } else if (assignData.assignment.assigned_to_department) {
-                    assignedTo = assignData.assignment.assigned_to_department + ' Dept';
-                }
+                assignedTo = assignData.assignment.assigned_to_name || 
+                           assignData.assignment.assigned_to_department + ' Dept' || 'Unassigned';
             }
         } catch (err) {
             console.error('Error fetching assignment:', err);
         }
         
-        // Fetch health info
-        let healthBadge = '<span class="health-badge health-unknown">N/A</span>';
         try {
+            // Health
             const healthResponse = await fetch(`/api/assets/${asset.asset_id}/health`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -130,6 +129,12 @@ function displayAssets(assets) {
             console.error('Error fetching health:', err);
         }
         
+        return { asset, assignedTo, healthBadge };
+    }));
+    
+    // Now render all rows synchronously
+    assetDetails.forEach(({ asset, assignedTo, healthBadge }) => {
+        const row = document.createElement('tr');
         row.innerHTML = `
             <td><input type="radio" name="selectedAsset" data-asset-id="${asset.asset_id}" ${selectedAssetId === asset.asset_id ? 'checked' : ''}></td>
             <td>${asset.asset_tag}</td>
@@ -143,17 +148,13 @@ function displayAssets(assets) {
         `;
         tbody.appendChild(row);
     });
-
-    // Add selection listener
-    setTimeout(() => {
-        tbody.querySelectorAll('input[name="selectedAsset"]').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                selectedAssetId = e.target.dataset.assetId;
-            });
-        });
-    }, 100);
     
-    assetsTable.style.display = 'block';
+    // Add event listeners once
+    tbody.querySelectorAll('input[name="selectedAsset"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            selectedAssetId = e.target.dataset.assetId;
+        });
+    });
 }
 
 // Status filter
@@ -161,7 +162,7 @@ document.getElementById('statusFilter').addEventListener('change', (e) => {
     loadAssets(e.target.value);
 });
 
-// Search - searches asset name, tag, and category
+// Search - client-side filter (clear tbody first, prevent duplicates)
 document.getElementById('searchInput').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const filteredAssets = allAssets.filter(asset => 
@@ -169,6 +170,8 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
         asset.asset_tag.toLowerCase().includes(searchTerm) ||
         asset.category.toLowerCase().includes(searchTerm)
     );
+    const tbody = document.getElementById('assetsTableBody');
+    tbody.innerHTML = ''; // Clear table to prevent duplicates
     displayAssets(filteredAssets);
 });
 

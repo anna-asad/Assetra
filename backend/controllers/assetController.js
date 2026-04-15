@@ -53,6 +53,10 @@ async function getAssets(req, res) {
     if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
       filter.department = req.user.department;
     }
+    // Add status filter support
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
     const assets = await db.getAllAssets(filter);
     res.json({ success: true, assets });
   } catch (error) {
