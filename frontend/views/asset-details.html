@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Asset Details</title>
+    <link rel="stylesheet" href="/css/asset-details.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Asset Details</h2>
+            <div class="header-actions">
+                <button class="back-btn" onclick="goBack()">← Back to Assets</button>
+            </div>
+        </div>
+
+        <div class="details-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('details')">Details</button>
+                <button class="tab-btn" onclick="showTab('financial')">Financial</button>
+                <button class="tab-btn" onclick="showTab('history')">Change History</button>
+            </div>
+
+            <!-- Details Tab -->
+            <div id="detailsTab" class="tab-content active">
+                <div class="asset-info">
+                    <div class="info-row">
+                        <div class="info-label">Asset Tag:</div>
+                        <div class="info-value" id="assetTag">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Asset Name:</div>
+                        <div class="info-value" id="assetName">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Category:</div>
+                        <div class="info-value" id="category">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Status:</div>
+                        <div class="info-value" id="status">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Department:</div>
+                        <div class="info-value" id="department">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Location:</div>
+                        <div class="info-value" id="location">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Purchase Date:</div>
+                        <div class="info-value" id="purchaseDate">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Purchase Cost:</div>
+                        <div class="info-value" id="purchaseCost">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Description:</div>
+                        <div class="info-value" id="description">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Assigned To:</div>
+                        <div class="info-value" id="assignedTo">-</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Created At:</div>
+                        <div class="info-value" id="createdAt">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Tab -->
+            <div id="financialTab" class="tab-content">
+                <div id="loadingFinancial" class="loading-message">Loading financial data...</div>
+                <div id="financialData" class="financial-data" style="display: none;">
+                    <div class="financial-section">
+                        <h3 class="section-title">Purchase Information</h3>
+                        <div class="financial-grid">
+                            <div class="financial-card">
+                                <div class="card-label">Purchase Cost</div>
+                                <div class="card-value" id="finPurchaseCost">$0.00</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Salvage Value</div>
+                                <div class="card-value" id="finSalvageValue">$0.00</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Useful Life</div>
+                                <div class="card-value" id="finUsefulLife">0 years</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Years in Use</div>
+                                <div class="card-value" id="finYearsInUse">0 years</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="financial-section">
+                        <h3 class="section-title">Depreciation Analysis</h3>
+                        <div class="financial-grid">
+                            <div class="financial-card highlight">
+                                <div class="card-label">Current Book Value</div>
+                                <div class="card-value large" id="finBookValue">$0.00</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Annual Depreciation</div>
+                                <div class="card-value" id="finAnnualDep">$0.00</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Accumulated Depreciation</div>
+                                <div class="card-value" id="finAccumDep">$0.00</div>
+                            </div>
+                            <div class="financial-card">
+                                <div class="card-label">Depreciation Rate</div>
+                                <div class="card-value" id="finDepRate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="financial-section">
+                        <h3 class="section-title">Value Over Time</h3>
+                        <div class="depreciation-chart">
+                            <canvas id="depreciationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="historyTab" class="tab-content">
+                <div id="loadingHistory" class="loading-message">Loading change history...</div>
+                <div id="noHistory" class="no-history" style="display: none;">
+                    <p>No change history available</p>
+                </div>
+                <div id="historyList" class="history-list" style="display: none;">
+                    <!-- History items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/asset-details.js"></script>
+</body>
+</html>

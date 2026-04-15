@@ -524,6 +524,434 @@ async function logAction(userId, action, entityType, entityId, details) {
   }
 }
 
+async function getAuditLogsByAsset(assetId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .query(`
+        SELECT al.*, u.full_name as user_name, u.username
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.user_id
+        WHERE al.entity_type = 'asset' AND al.entity_id = @asset_id
+        ORDER BY al.timestamp DESC
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting audit logs:', error);
+    throw error;
+  }
+}
+
+// ==================== DEPRECIATION & VALUATION FUNCTIONS ====================
+async function calculateAssetDepreciation(assetId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .query(`
+        SELECT 
+          asset_id,
+          asset_name,
+          purchase_cost,
+          salvage_value,
+          useful_life_years,
+          purchase_date,
+          DATEDIFF(YEAR, purchase_date, GETDATE()) as years_in_use,
+          CASE 
+            WHEN useful_life_years > 0 THEN 
+              (purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years
+            ELSE 0 
+          END as annual_depreciation,
+          CASE 
+            WHEN useful_life_years > 0 THEN 
+              ((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+              DATEDIFF(YEAR, purchase_date, GETDATE())
+            ELSE 0 
+          END as accumulated_depreciation,
+          CASE 
+            WHEN useful_life_years > 0 THEN 
+              purchase_cost - (((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+              DATEDIFF(YEAR, purchase_date, GETDATE()))
+            ELSE purchase_cost 
+          END as current_book_value
+        FROM assets
+        WHERE asset_id = @asset_id
+      `);
+    
+    const asset = result.recordset[0];
+    if (!asset) return null;
+    
+    // Ensure book value doesn't go below salvage value
+    if (asset.current_book_value < (asset.salvage_value || 0)) {
+      asset.current_book_value = asset.salvage_value || 0;
+    }
+    
+    return {
+      asset_id: asset.asset_id,
+      asset_name: asset.asset_name,
+      purchase_cost: parseFloat(asset.purchase_cost) || 0,
+      salvage_value: parseFloat(asset.salvage_value) || 0,
+      useful_life_years: asset.useful_life_years || 0,
+      years_in_use: asset.years_in_use || 0,
+      annual_depreciation: parseFloat(asset.annual_depreciation) || 0,
+      accumulated_depreciation: parseFloat(asset.accumulated_depreciation) || 0,
+      current_book_value: parseFloat(asset.current_book_value) || 0,
+      depreciation_rate: asset.useful_life_years > 0 ? 
+        ((1 / asset.useful_life_years) * 100).toFixed(2) : 0
+    };
+  } catch (error) {
+    console.error('Error calculating depreciation:', error);
+    throw error;
+  }
+}
+
+async function getDepreciationSummary(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        COUNT(*) as total_assets,
+        SUM(purchase_cost) as total_purchase_cost,
+        SUM(ISNULL(salvage_value, 0)) as total_salvage_value,
+        SUM(
+          CASE 
+            WHEN useful_life_years > 0 THEN 
+              ((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+              DATEDIFF(YEAR, purchase_date, GETDATE())
+            ELSE 0 
+          END
+        ) as total_accumulated_depreciation,
+        SUM(
+          CASE 
+            WHEN useful_life_years > 0 THEN 
+              purchase_cost - (((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+              DATEDIFF(YEAR, purchase_date, GETDATE()))
+            ELSE purchase_cost 
+          END
+        ) as total_current_value
+      FROM assets
+      WHERE 1=1
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    const result = await request.query(query);
+    const summary = result.recordset[0];
+    
+    return {
+      total_assets: summary.total_assets || 0,
+      total_purchase_cost: parseFloat(summary.total_purchase_cost) || 0,
+      total_salvage_value: parseFloat(summary.total_salvage_value) || 0,
+      total_accumulated_depreciation: parseFloat(summary.total_accumulated_depreciation) || 0,
+      total_current_value: parseFloat(summary.total_current_value) || 0,
+      total_depreciation_percentage: summary.total_purchase_cost > 0 ? 
+        ((parseFloat(summary.total_accumulated_depreciation) / parseFloat(summary.total_purchase_cost)) * 100).toFixed(2) : 0
+    };
+  } catch (error) {
+    console.error('Error getting depreciation summary:', error);
+    throw error;
+  }
+}
+
+async function getAssetsWithDepreciation(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        asset_id,
+        asset_tag,
+        asset_name,
+        category,
+        department,
+        purchase_cost,
+        salvage_value,
+        useful_life_years,
+        purchase_date,
+        DATEDIFF(YEAR, purchase_date, GETDATE()) as years_in_use,
+        CASE 
+          WHEN useful_life_years > 0 THEN 
+            (purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years
+          ELSE 0 
+        END as annual_depreciation,
+        CASE 
+          WHEN useful_life_years > 0 THEN 
+            ((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+            DATEDIFF(YEAR, purchase_date, GETDATE())
+          ELSE 0 
+        END as accumulated_depreciation,
+        CASE 
+          WHEN useful_life_years > 0 THEN 
+            purchase_cost - (((purchase_cost - ISNULL(salvage_value, 0)) / useful_life_years) * 
+            DATEDIFF(YEAR, purchase_date, GETDATE()))
+          ELSE purchase_cost 
+        END as current_book_value
+      FROM assets
+      WHERE 1=1
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY purchase_date DESC';
+    
+    const result = await request.query(query);
+    
+    return result.recordset.map(asset => ({
+      ...asset,
+      purchase_cost: parseFloat(asset.purchase_cost) || 0,
+      salvage_value: parseFloat(asset.salvage_value) || 0,
+      annual_depreciation: parseFloat(asset.annual_depreciation) || 0,
+      accumulated_depreciation: parseFloat(asset.accumulated_depreciation) || 0,
+      current_book_value: Math.max(
+        parseFloat(asset.current_book_value) || 0,
+        parseFloat(asset.salvage_value) || 0
+      )
+    }));
+  } catch (error) {
+    console.error('Error getting assets with depreciation:', error);
+    throw error;
+  }
+}
+
+// ==================== HEALTH SCORE & MAINTENANCE FUNCTIONS ====================
+async function calculateHealthScore(assetId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .query(`
+        SELECT 
+          asset_id,
+          asset_name,
+          purchase_date,
+          warranty_expiry_date,
+          last_maintenance_date,
+          useful_life_years,
+          DATEDIFF(DAY, purchase_date, GETDATE()) as days_old,
+          DATEDIFF(DAY, GETDATE(), warranty_expiry_date) as days_until_warranty_expires,
+          DATEDIFF(DAY, last_maintenance_date, GETDATE()) as days_since_maintenance
+        FROM assets
+        WHERE asset_id = @asset_id
+      `);
+    
+    const asset = result.recordset[0];
+    if (!asset) return null;
+    
+    // Calculate age score (0-100, newer is better)
+    const usefulLifeDays = (asset.useful_life_years || 5) * 365;
+    const ageScore = Math.max(0, 100 - ((asset.days_old / usefulLifeDays) * 100));
+    
+    // Calculate maintenance score (0-100, recent maintenance is better)
+    let maintenanceScore = 50; // Default if never maintained
+    if (asset.last_maintenance_date) {
+      const daysSinceMaintenance = asset.days_since_maintenance || 0;
+      if (daysSinceMaintenance <= 90) {
+        maintenanceScore = 100;
+      } else if (daysSinceMaintenance <= 180) {
+        maintenanceScore = 75;
+      } else if (daysSinceMaintenance <= 365) {
+        maintenanceScore = 50;
+      } else {
+        maintenanceScore = 25;
+      }
+    }
+    
+    // Calculate warranty score (0-100)
+    let warrantyScore = 0;
+    if (asset.warranty_expiry_date) {
+      const daysUntilExpiry = asset.days_until_warranty_expires || 0;
+      if (daysUntilExpiry > 0) {
+        warrantyScore = 100;
+      } else {
+        warrantyScore = 0;
+      }
+    }
+    
+    // Overall health score (weighted average)
+    const healthScore = Math.round(
+      (ageScore * 0.4) + 
+      (maintenanceScore * 0.4) + 
+      (warrantyScore * 0.2)
+    );
+    
+    return {
+      asset_id: assetId,
+      health_score: healthScore,
+      age_score: Math.round(ageScore),
+      maintenance_score: Math.round(maintenanceScore),
+      warranty_score: Math.round(warrantyScore),
+      days_until_warranty_expires: asset.days_until_warranty_expires,
+      days_since_maintenance: asset.days_since_maintenance,
+      health_status: healthScore >= 70 ? 'Healthy' : healthScore >= 50 ? 'Warning' : 'Critical'
+    };
+  } catch (error) {
+    console.error('Error calculating health score:', error);
+    throw error;
+  }
+}
+
+async function updateAssetHealthScore(assetId, healthScore) {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('asset_id', sql.Int, assetId)
+      .input('health_score', sql.Int, healthScore)
+      .query('UPDATE assets SET health_score = @health_score WHERE asset_id = @asset_id');
+    return true;
+  } catch (error) {
+    console.error('Error updating health score:', error);
+    throw error;
+  }
+}
+
+async function updateAllHealthScores() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query('SELECT asset_id FROM assets');
+    
+    const assets = result.recordset;
+    let updated = 0;
+    
+    for (const asset of assets) {
+      const health = await calculateHealthScore(asset.asset_id);
+      if (health) {
+        await updateAssetHealthScore(asset.asset_id, health.health_score);
+        updated++;
+      }
+    }
+    
+    return { success: true, updated };
+  } catch (error) {
+    console.error('Error updating all health scores:', error);
+    throw error;
+  }
+}
+
+async function getMaintenanceAlerts(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        asset_id,
+        asset_tag,
+        asset_name,
+        department,
+        status,
+        health_score,
+        warranty_expiry_date,
+        last_maintenance_date,
+        DATEDIFF(DAY, GETDATE(), warranty_expiry_date) as days_until_warranty_expires,
+        CASE 
+          WHEN health_score < 50 THEN 'Critical - Low Health Score'
+          WHEN DATEDIFF(DAY, GETDATE(), warranty_expiry_date) <= 30 AND DATEDIFF(DAY, GETDATE(), warranty_expiry_date) > 0 THEN 'Warning - Warranty Expiring Soon'
+          WHEN DATEDIFF(DAY, GETDATE(), warranty_expiry_date) < 0 THEN 'Critical - Warranty Expired'
+          ELSE 'OK'
+        END as alert_reason
+      FROM assets
+      WHERE (health_score < 50 OR DATEDIFF(DAY, GETDATE(), warranty_expiry_date) <= 30)
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY health_score ASC, warranty_expiry_date ASC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting maintenance alerts:', error);
+    throw error;
+  }
+}
+
+async function getAssetsWithHealth(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        asset_id,
+        asset_tag,
+        asset_name,
+        category,
+        status,
+        department,
+        location,
+        health_score,
+        warranty_expiry_date,
+        last_maintenance_date,
+        CASE 
+          WHEN health_score >= 70 THEN 'Healthy'
+          WHEN health_score >= 50 THEN 'Warning'
+          ELSE 'Critical'
+        END as health_status
+      FROM assets
+      WHERE 1=1
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY health_score ASC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting assets with health:', error);
+    throw error;
+  }
+}
+
+async function recordMaintenance(maintenanceData) {
+  try {
+    const pool = await getConnection();
+    
+    // Insert maintenance record
+    const result = await pool.request()
+      .input('asset_id', sql.Int, maintenanceData.asset_id)
+      .input('maintenance_date', sql.Date, maintenanceData.maintenance_date)
+      .input('maintenance_type', sql.NVarChar, maintenanceData.maintenance_type)
+      .input('notes', sql.NVarChar, maintenanceData.notes)
+      .input('performed_by', sql.Int, maintenanceData.performed_by)
+      .query(`
+        INSERT INTO maintenance_records (asset_id, maintenance_date, maintenance_type, notes, performed_by)
+        OUTPUT INSERTED.*
+        VALUES (@asset_id, @maintenance_date, @maintenance_type, @notes, @performed_by)
+      `);
+    
+    // Update last maintenance date on asset
+    await pool.request()
+      .input('asset_id', sql.Int, maintenanceData.asset_id)
+      .input('maintenance_date', sql.Date, maintenanceData.maintenance_date)
+      .query('UPDATE assets SET last_maintenance_date = @maintenance_date WHERE asset_id = @asset_id');
+    
+    // Recalculate health score
+    const health = await calculateHealthScore(maintenanceData.asset_id);
+    if (health) {
+      await updateAssetHealthScore(maintenanceData.asset_id, health.health_score);
+    }
+    
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error recording maintenance:', error);
+    throw error;
+  }
+}
+
 // ==================== EXPORTS ====================
 module.exports = {
   findUserByUsername,
@@ -546,6 +974,16 @@ module.exports = {
   getActiveAssignment,
   getAssignmentHistory,
   logAction,
+  getAuditLogsByAsset,
+  calculateAssetDepreciation,
+  getDepreciationSummary,
+  getAssetsWithDepreciation,
+  calculateHealthScore,
+  updateAssetHealthScore,
+  updateAllHealthScores,
+  getMaintenanceAlerts,
+  getAssetsWithHealth,
+  recordMaintenance,
   getMaintenanceCost,
   getDepreciation,
   getAuditedCount,

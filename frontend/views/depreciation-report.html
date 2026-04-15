@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Depreciation Report</title>
+    <link rel="stylesheet" href="/css/depreciation-report.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">☰</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Depreciation & Valuation Report</h2>
+            <div class="header-actions">
+                <button class="back-btn" onclick="goBack()">← Back</button>
+            </div>
+        </div>
+
+        <div class="report-container">
+            <div id="loadingMessage" class="loading-message">Loading report...</div>
+            
+            <div id="reportContent" style="display: none;">
+                <!-- Summary Section -->
+                <div class="summary-section">
+                    <h3 class="section-title">Financial Summary - <span id="departmentName">All Departments</span></h3>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="card-icon">📦</div>
+                            <div class="card-content">
+                                <div class="card-label">Total Assets</div>
+                                <div class="card-value" id="totalAssets">0</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">💰</div>
+                            <div class="card-content">
+                                <div class="card-label">Total Purchase Cost</div>
+                                <div class="card-value" id="totalPurchase">$0.00</div>
+                            </div>
+                        </div>
+                        <div class="summary-card highlight">
+                            <div class="card-icon">📊</div>
+                            <div class="card-content">
+                                <div class="card-label">Current Total Value</div>
+                                <div class="card-value large" id="currentValue">$0.00</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">📉</div>
+                            <div class="card-content">
+                                <div class="card-label">Total Depreciation</div>
+                                <div class="card-value" id="totalDep">$0.00</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">💵</div>
+                            <div class="card-content">
+                                <div class="card-label">Total Salvage Value</div>
+                                <div class="card-value" id="totalSalvage">$0.00</div>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">📈</div>
+                            <div class="card-content">
+                                <div class="card-label">Depreciation Rate</div>
+                                <div class="card-value" id="depRate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Table -->
+                <div class="assets-section">
+                    <h3 class="section-title">Asset Depreciation Details</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Asset Tag</th>
+                                    <th>Asset Name</th>
+                                    <th>Department</th>
+                                    <th>Purchase Cost</th>
+                                    <th>Years in Use</th>
+                                    <th>Annual Depreciation</th>
+                                    <th>Accumulated Depreciation</th>
+                                    <th>Current Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsTableBody">
+                                <!-- Assets will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/depreciation-report.js"></script>
+</body>
+</html>

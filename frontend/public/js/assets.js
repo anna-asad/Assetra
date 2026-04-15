@@ -91,7 +91,7 @@ function displayAssets(assets) {
     
     tbody.innerHTML = '';
     
-    // Fetch assignments for all assets
+    // Fetch assignments and health for all assets
     assets.forEach(async (asset) => {
         const row = document.createElement('tr');
         
@@ -113,12 +113,30 @@ function displayAssets(assets) {
             console.error('Error fetching assignment:', err);
         }
         
+        // Fetch health info
+        let healthBadge = '<span class="health-badge health-unknown">N/A</span>';
+        try {
+            const healthResponse = await fetch(`/api/assets/${asset.asset_id}/health`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const healthData = await healthResponse.json();
+            if (healthData.success && healthData.health) {
+                const health = healthData.health;
+                const healthClass = health.health_status === 'Healthy' ? 'health-healthy' : 
+                                   health.health_status === 'Warning' ? 'health-warning' : 'health-critical';
+                healthBadge = `<span class="health-badge ${healthClass}">${health.health_score}</span>`;
+            }
+        } catch (err) {
+            console.error('Error fetching health:', err);
+        }
+        
         row.innerHTML = `
             <td><input type="radio" name="selectedAsset" data-asset-id="${asset.asset_id}" ${selectedAssetId === asset.asset_id ? 'checked' : ''}></td>
             <td>${asset.asset_tag}</td>
             <td>${asset.asset_name}</td>
             <td>${asset.category}</td>
             <td><span class="status-badge status-${asset.status.toLowerCase()}">${asset.status}</span></td>
+            <td>${healthBadge}</td>
             <td>${asset.department || '-'}</td>
             <td>${asset.location || '-'}</td>
             <td>${assignedTo}</td>
@@ -182,6 +200,14 @@ async function updateStatus(assetId, newStatus) {
 }
 
 // New button functions
+function viewDetails() {
+    if (!selectedAssetId) {
+        alert('Please select an asset to view details');
+        return;
+    }
+    window.location.href = `/views/asset-details.html?id=${selectedAssetId}`;
+}
+
 function editSelected() {
     if (!selectedAssetId) {
         alert('Please select an asset to edit');

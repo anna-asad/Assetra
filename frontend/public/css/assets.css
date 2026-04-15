@@ -407,3 +407,31 @@ tbody tr:hover {
 .cancel-btn:hover {
     background-color: #666;
 }
+
+/* Health Badge Styles */
+.health-badge {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.health-healthy {
+    background-color: #51cf66;
+    color: #fff;
+}
+
+.health-warning {
+    background-color: #ffd43b;
+    color: #333;
+}
+
+.health-critical {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+.health-unknown {
+    background-color: #868e96;
+    color: #fff;
+}

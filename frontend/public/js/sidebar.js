@@ -14,9 +14,21 @@ function initSidebar() {
                     </a>
                 </li>
                 <li data-role="Manager" style="display: ${user.role === 'Admin' || user.role === 'Manager' ? 'block' : 'none'}">
-                    <a href="/views/assets.html" class="${currentPage.includes('assets') ? 'active' : ''}">
+                    <a href="/views/assets.html" class="${currentPage.includes('assets') || currentPage.includes('asset-details') ? 'active' : ''}">
                         <span class="menu-icon">📋</span>
                         <span class="menu-text">Manage Assets</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/views/maintenance-alerts.html" class="${currentPage.includes('maintenance-alerts') ? 'active' : ''}">
+                        <span class="menu-icon">🚨</span>
+                        <span class="menu-text">Maintenance Alerts</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/views/depreciation-report.html" class="${currentPage.includes('depreciation') ? 'active' : ''}">
+                        <span class="menu-icon">💰</span>
+                        <span class="menu-text">Financial Report</span>
                     </a>
                 </li>
                 <li>

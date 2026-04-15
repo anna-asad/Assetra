@@ -30,6 +30,16 @@ async function addAsset(req, res) {
       useful_life_years: parseInt(req.body.useful_life_years) || 5
     };
     const newAsset = await db.createAsset(assetData);
+    
+    // Log asset creation
+    await db.logAction(
+      userId,
+      'CREATE_ASSET',
+      'asset',
+      newAsset.asset_id,
+      `Created asset: ${assetData.asset_name} (${assetData.asset_tag})`
+    );
+    
     res.json({ success: true, message: 'Asset added!', asset: newAsset });
   } catch (error) {
     console.error('addAsset error:', error);
@@ -69,7 +79,27 @@ async function getAssetById(req, res) {
 
 async function updateAsset(req, res) {
   try {
-    const updated = await db.updateAssetById(req.params.id, req.body, req.user.userId);
+    const assetId = req.params.id;
+    const oldAsset = await db.getAssetById(assetId);
+    
+    const updated = await db.updateAssetById(assetId, req.body, req.user.userId);
+    
+    // Log asset update with changes
+    const changes = [];
+    Object.keys(req.body).forEach(key => {
+      if (oldAsset[key] !== req.body[key]) {
+        changes.push(`${key}: ${oldAsset[key]} → ${req.body[key]}`);
+      }
+    });
+    
+    await db.logAction(
+      req.user.userId,
+      'UPDATE_ASSET',
+      'asset',
+      assetId,
+      `Updated asset: ${changes.join(', ')}`
+    );
+    
     res.json({ success: true, asset: updated });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -78,8 +108,21 @@ async function updateAsset(req, res) {
 
 async function deleteAsset(req, res) {
   try {
-    const deleted = await db.deleteAssetById(req.params.id, req.user.userId);
-    res.json({ success: true, message: 'Asset soft-deleted' });
+    const assetId = req.params.id;
+    const asset = await db.getAssetById(assetId);
+    
+    const deleted = await db.deleteAssetById(assetId, req.user.userId);
+    
+    // Log asset deletion
+    await db.logAction(
+      req.user.userId,
+      'DELETE_ASSET',
+      'asset',
+      assetId,
+      `Deleted asset: ${asset.asset_name} (${asset.asset_tag})`
+    );
+    
+    res.json({ success: true, message: 'Asset deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -87,7 +130,22 @@ async function deleteAsset(req, res) {
 
 async function changeAssetStatus(req, res) {
   try {
-    const updated = await db.updateAssetStatus(req.params.id, req.body.status);
+    const assetId = req.params.id;
+    const asset = await db.getAssetById(assetId);
+    const oldStatus = asset.status;
+    const newStatus = req.body.status;
+    
+    const updated = await db.updateAssetStatus(assetId, newStatus);
+    
+    // Log status change
+    await db.logAction(
+      req.user.userId,
+      'CHANGE_STATUS',
+      'asset',
+      assetId,
+      `Status changed: ${oldStatus} → ${newStatus}`
+    );
+    
     res.json({ success: true, asset: updated });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -161,7 +219,140 @@ async function getAllUsersForAssignment(req, res) {
   }
 }
 
+async function getAssetAuditLog(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const auditLogs = await db.getAuditLogsByAsset(assetId);
+    res.json({ success: true, logs: auditLogs });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getAssetDepreciation(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const depreciation = await db.calculateAssetDepreciation(assetId);
+    
+    if (!depreciation) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+    
+    res.json({ success: true, depreciation });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getDepreciationReport(req, res) {
+  try {
+    let department = null;
+    if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
+      department = req.user.department;
+    }
+    
+    const summary = await db.getDepreciationSummary(department);
+    const assets = await db.getAssetsWithDepreciation(department);
+    
+    res.json({ 
+      success: true, 
+      summary,
+      assets,
+      department: department || 'All Departments'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getAssetHealth(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const health = await db.calculateHealthScore(assetId);
+    
+    if (!health) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+    
+    res.json({ success: true, health });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function updateHealthScores(req, res) {
+  try {
+    const result = await db.updateAllHealthScores();
+    res.json({ success: true, message: `Updated ${result.updated} asset health scores` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getMaintenanceAlertsReport(req, res) {
+  try {
+    let department = null;
+    if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
+      department = req.user.department;
+    }
+    
+    const alerts = await db.getMaintenanceAlerts(department);
+    res.json({ success: true, alerts, department: department || 'All Departments' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getHealthReport(req, res) {
+  try {
+    let department = null;
+    if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
+      department = req.user.department;
+    }
+    
+    const assets = await db.getAssetsWithHealth(department);
+    res.json({ success: true, assets, department: department || 'All Departments' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function addMaintenanceRecord(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    const { maintenance_date, maintenance_type, notes } = req.body;
+    
+    if (!maintenance_date || !maintenance_type) {
+      return res.status(400).json({ success: false, message: 'Maintenance date and type are required' });
+    }
+    
+    const maintenanceData = {
+      asset_id: assetId,
+      maintenance_date,
+      maintenance_type,
+      notes: notes || '',
+      performed_by: req.user.userId
+    };
+    
+    const record = await db.recordMaintenance(maintenanceData);
+    
+    await db.logAction(
+      req.user.userId,
+      'MAINTENANCE',
+      'asset',
+      assetId,
+      `Maintenance performed: ${maintenance_type}`
+    );
+    
+    res.json({ success: true, message: 'Maintenance recorded successfully', record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus,
-  assignAsset, getAssetAssignment, getAllUsersForAssignment
+  assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog,
+  getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores,
+  getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord
 };
