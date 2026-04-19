@@ -11,6 +11,6 @@ router.use(authenticateToken);
 router.get('/stats', getDashboardStats);
 
 // GET /api/dashboard/asset-distribution (Admin only)
-router.get('/asset-distribution', roleCheck(['Admin']), getAssetDistribution);
+router.get('/asset-distribution', roleCheck(['Admin', 'Viewer']), getAssetDistribution);
 
 module.exports = router;

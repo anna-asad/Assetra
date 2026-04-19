@@ -9,6 +9,16 @@ if (!token) {
 // Display user name
 document.getElementById('userName').textContent = user.fullName || user.username || 'User';
 
+// Add click handler for Asset Distribution chart - Admin/Viewer only
+if ((user.role === 'Admin' || user.role === 'Viewer') && document.querySelector('.chart-card')) {
+    const assetDistributionCard = document.querySelector('.chart-card');
+    assetDistributionCard.style.cursor = 'pointer';
+    assetDistributionCard.title = 'Click for detailed department charts';
+    assetDistributionCard.addEventListener('click', () => {
+        window.location.href = '/views/asset-distribution.html';
+    });
+}
+
 // Total Assets card click - navigate to assets list
 document.getElementById('totalAssetsCard').addEventListener('click', () => {
     window.location.href = '/views/assets.html';

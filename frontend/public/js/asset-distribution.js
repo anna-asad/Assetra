@@ -45,6 +45,7 @@ async function loadDistributionData() {
             
             renderAcademicChart(academicData, data.distribution);
             renderAdminChart(adminData, data.distribution);
+            document.getElementById('departmentInfo').textContent = 'All Departments - Admin View';
         } else {
             throw new Error(data.message || 'Failed to load data');
         }

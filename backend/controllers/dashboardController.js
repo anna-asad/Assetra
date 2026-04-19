@@ -65,14 +65,16 @@ async function getDashboardStats(req, res) {
   }
 }
 
-
 async function getAssetDistribution(req, res) {
   try {
-    const departments = await getUniqueDepartments();
-    const distribution = [];
+    const userRole = req.user.role;
+    const userDepartment = req.user.department;
 
-    for (const department of departments) {
-      const statusData = await getAssetsByStatusAndDepartment(department);
+    let distribution = [];
+
+    if (userRole === 'Manager') {
+      // Managers see only their department
+      const statusData = await getAssetsByStatusAndDepartment(userDepartment);
       const breakdown = {
         Available: 0,
         Allocated: 0,
@@ -83,12 +85,30 @@ async function getAssetDistribution(req, res) {
         breakdown[item.status] = item.count;
       });
       breakdown.total = Object.values(breakdown).reduce((sum, count) => sum + count, 0);
-      distribution.push({ department, ...breakdown });
+      distribution = [{ department: userDepartment, ...breakdown }];
+    } else {
+      // Admin sees all departments
+      const departments = await getUniqueDepartments();
+      for (const department of departments) {
+        const statusData = await getAssetsByStatusAndDepartment(department);
+        const breakdown = {
+          Available: 0,
+          Allocated: 0,
+          Maintenance: 0,
+          Missing: 0
+        };
+        statusData.forEach(item => {
+          breakdown[item.status] = item.count;
+        });
+        breakdown.total = Object.values(breakdown).reduce((sum, count) => sum + count, 0);
+        distribution.push({ department, ...breakdown });
+      }
     }
 
     res.json({
       success: true,
-      distribution
+      distribution,
+      userRole // For frontend debugging
     });
   } catch (error) {
     console.error('Error getting asset distribution:', error);
@@ -98,7 +118,6 @@ async function getAssetDistribution(req, res) {
     });
   }
 }
-
 
 module.exports = {
   getDashboardStats,

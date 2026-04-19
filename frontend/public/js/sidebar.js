@@ -13,18 +13,8 @@ function initSidebar() {
                         <span class="menu-text">Dashboard</span>
                     </a>
                 </li>
-                <li data-role="Manager,Admin,Viewer" style="display: ${user.role === 'Admin' || user.role === 'Manager' || user.role === 'Viewer' ? 'block' : 'none'}">
-                    <a href="/views/assets.html" class="${currentPage.includes('assets') || currentPage.includes('asset-details') ? 'active' : ''}">
-                        <span class="menu-icon">📋</span>
-                        <span class="menu-text">Manage Assets</span>
-                    </a>
-                </li>
-                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
-                    <a href="/views/asset-distribution.html" class="${currentPage.includes('asset-distribution') ? 'active' : ''}">
-                        <span class="menu-icon">📈</span>
-                        <span class="menu-text">Asset Distribution</span>
-                    </a>
-                </li>
+                <li data-role="Manager,Admin" style="display: ${user.role === 'Admin' || user.role === 'Manager' ? 'block' : 'none'}">\n                    <a href="/views/assets.html" class="${currentPage.includes('assets') || currentPage.includes('asset-details') ? 'active' : ''}">\n                        <span class="menu-icon">📋</span>\n                        <span class="menu-text">Manage Assets</span>\n                    </a>\n                </li>
+                <li data-role="Admin,Viewer" style="display: ${user.role === 'Admin' || user.role === 'Viewer' ? 'block' : 'none'}">\n                    <a href="/views/asset-distribution.html" class="${currentPage.includes('asset-distribution') ? 'active' : ''}">\n                        <span class="menu-icon">📈</span>\n                        <span class="menu-text">Asset Distribution</span>\n                    </a>\n                </li>
                 <li>
                     <a href="/views/maintenance-alerts.html" class="${currentPage.includes('maintenance-alerts') ? 'active' : ''}">
                         <span class="menu-icon">🚨</span>
