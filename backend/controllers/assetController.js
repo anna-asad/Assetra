@@ -27,7 +27,8 @@ async function addAsset(req, res) {
       created_by: userId,
       maintenance_cost: parseFloat(req.body.maintenance_cost) || 0,
       salvage_value: parseFloat(req.body.salvage_value) || 0,
-      useful_life_years: parseInt(req.body.useful_life_years) || 5
+      useful_life_years: parseInt(req.body.useful_life_years) || 5,
+      warranty_expiry_date: req.body.warranty_expiry_date || null
     };
     const newAsset = await db.createAsset(assetData);
     

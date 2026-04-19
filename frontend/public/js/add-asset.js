@@ -81,6 +81,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         localStorage.removeItem('editingAssetId');
     }
     
+    // Load last used useful life years
+    const lastUsefulLife = localStorage.getItem('lastUsefulLifeYears');
+    if (lastUsefulLife && !isEditing) {
+        const usefulLifeField = document.getElementById('useful_life_years');
+        if (usefulLifeField) {
+            usefulLifeField.value = lastUsefulLife;
+        }
+    }
+    
     // Update page title and button if editing
     if (isEditing) {
         const pageTitle = document.querySelector('.page-title');
@@ -98,6 +107,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (assetForm) {
             assetForm.reset();
             console.log('Form cleared for new asset entry');
+            
+            // Restore useful life years after reset
+            if (lastUsefulLife) {
+                const usefulLifeField = document.getElementById('useful_life_years');
+                if (usefulLifeField) {
+                    usefulLifeField.value = lastUsefulLife;
+                }
+            }
         }
         
         const pageTitle = document.querySelector('.page-title');
@@ -168,10 +185,17 @@ function setupFormSubmission() {
             status: document.getElementById('status').value,
             purchase_date: document.getElementById('purchase_date').value || null,
             purchase_cost: document.getElementById('purchase_cost').value,
+            warranty_expiry_date: document.getElementById('warranty_expiry_date').value || null,
+            useful_life_years: document.getElementById('useful_life_years').value || 5,
             location: document.getElementById('location').value || null,
             department: document.getElementById('department').value || null,
             description: document.getElementById('description').value || null
         };
+        
+        // Save useful life years to localStorage for next time
+        if (formData.useful_life_years) {
+            localStorage.setItem('lastUsefulLifeYears', formData.useful_life_years);
+        }
         
         // Frontend validation
         if (!formData.asset_tag || !formData.asset_name) {

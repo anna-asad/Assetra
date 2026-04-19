@@ -42,7 +42,8 @@ async function login(req, res) {
         fullName: user.full_name,
         email: user.email,
         role: user.role,
-        department: user.department
+        department: user.department,
+        createdAt: user.created_at
       }
     });
   } catch (error) {

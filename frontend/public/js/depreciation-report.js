@@ -1,3 +1,4 @@
+//Health Score = (Age Score × 40%) + (Maintenance Score × 40%) + (Warranty Score × 20%)
 // Check if user is logged in
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || '{}');

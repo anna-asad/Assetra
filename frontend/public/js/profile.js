@@ -42,11 +42,14 @@ function loadProfile() {
     document.getElementById('profileDepartment').textContent = user.department || '-';
     
     // Format created date (if available)
-    const createdDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    let createdDate = 'Unknown';
+    if (user.createdAt) {
+        createdDate = new Date(user.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
     document.getElementById('profileCreated').textContent = createdDate;
 }
 
