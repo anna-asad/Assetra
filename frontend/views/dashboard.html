@@ -32,11 +32,11 @@
                 <div class="stat-number" id="totalAssetValue">₨0</div>
                 <div class="stat-label">Total Value</div>
             </div>
-                <div class="stat-card">
+                <div class="stat-card clickable-card" id="missingAssetsCard" style="cursor: pointer;" title="Click for missing assets list">
                 <div class="stat-number" id="missingAssets">0</div>
                 <div class="stat-label">Missing Assets</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card clickable-card" id="maintenanceAssetsCard" style="cursor: pointer;" title="Click for maintenance list">
                 <div class="stat-number" id="maintenanceAssets">0</div>
                 <div class="stat-label">Assets under Maintenance</div>
             </div>
@@ -44,7 +44,7 @@
 
         <div class="dashboard-layout">
             <div class="left-column">
-                <div class="chart-card">
+<div class="chart-card clickable-card" style="cursor: pointer;" onclick="window.location.href='/views/asset-distribution.html'" title="Click for detailed department charts">
                     <h3>Asset Distribution</h3>
                     <div class="chart-placeholder">
                         <div class="bar-chart">

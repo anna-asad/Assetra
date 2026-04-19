@@ -19,6 +19,16 @@ document.getElementById('totalValueCard').addEventListener('click', () => {
     openAssetsModal();
 });
 
+// Maintenance Assets card - show maintenance list
+document.getElementById('maintenanceAssetsCard').addEventListener('click', () => {
+    openMaintenanceModal();
+});
+
+// Missing Assets card - show missing list
+document.getElementById('missingAssetsCard').addEventListener('click', () => {
+    openMissingModal();
+});
+
 // Modal functionality
 const modal = document.getElementById('assetsModal');
 const closeModalBtn = document.getElementById('closeModalBtn');
@@ -39,7 +49,7 @@ async function openAssetsModal() {
     await loadAssetsForValue();
 }
 
-async function loadAssetsForValue() {
+async function loadAssetsByStatus(status) {
     const loadingMessage = document.getElementById('modalLoadingMessage');
     const errorMessage = document.getElementById('modalErrorMessage');
     const assetsTable = document.getElementById('assetsValueTable');
@@ -51,7 +61,7 @@ async function loadAssetsForValue() {
     noAssets.style.display = 'none';
     
     try {
-        const response = await fetch('/api/assets', {
+        const response = await fetch(`/api/assets?status=${status}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -72,6 +82,22 @@ async function loadAssetsForValue() {
     } finally {
         loadingMessage.style.display = 'none';
     }
+}
+
+async function loadAssetsForValue() {
+    await loadAssetsByStatus(); // All assets for value modal
+}
+
+async function openMaintenanceModal() {
+    document.getElementById('assetsModal').style.display = 'flex';
+    document.querySelector('.modal-header h2').textContent = 'Assets Under Maintenance';
+    await loadAssetsByStatus('Maintenance');
+}
+
+async function openMissingModal() {
+    document.getElementById('assetsModal').style.display = 'flex';
+    document.querySelector('.modal-header h2').textContent = 'Missing Assets';
+    await loadAssetsByStatus('Missing');
 }
 
 function displayAssetsForValue(assets) {

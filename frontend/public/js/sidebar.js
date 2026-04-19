@@ -13,10 +13,16 @@ function initSidebar() {
                         <span class="menu-text">Dashboard</span>
                     </a>
                 </li>
-                <li data-role="Manager" style="display: ${user.role === 'Admin' || user.role === 'Manager' ? 'block' : 'none'}">
+                <li data-role="Manager,Admin,Viewer" style="display: ${user.role === 'Admin' || user.role === 'Manager' || user.role === 'Viewer' ? 'block' : 'none'}">
                     <a href="/views/assets.html" class="${currentPage.includes('assets') || currentPage.includes('asset-details') ? 'active' : ''}">
                         <span class="menu-icon">📋</span>
                         <span class="menu-text">Manage Assets</span>
+                    </a>
+                </li>
+                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
+                    <a href="/views/asset-distribution.html" class="${currentPage.includes('asset-distribution') ? 'active' : ''}">
+                        <span class="menu-icon">📈</span>
+                        <span class="menu-text">Asset Distribution</span>
                     </a>
                 </li>
                 <li>

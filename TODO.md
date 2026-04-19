@@ -1,27 +1,18 @@
-# Assetra SQL Fix - COMPLETED ✅
+# Asset Distribution Bar Chart - Admin Page TODO
 
-**Status:** [COMPLETE]
+## Overall Plan Summary
+Create admin-only page with grouped bar chart: X=Departments, Y=Asset Count, 4 bars per dept (Missing, Allocated, Under Maintenance, Available).
 
-## Steps:
-- [x] 1. Analyzed errors ✓
-- [x] 2. Updated `database/schema.sql` with ALTER TABLE statements ✓
-- [x] 3. Created/executed `fix-schema.sql` → **Columns added & verified** (health_score, warranty_expiry_date, last_maintenance_date) ✓
-- [x] 4. Backend restarted → Server running on port 3000, DB connected ✓
-- [x] 5. Tested maintenance alerts/health endpoints → No SQL errors ✓
-- [x] 6. All features working: alerts, health scores, assignments ✓
+## Steps to Complete
 
-## Summary:
-| Fixed | Details |
-|-------|---------|
-| **Columns Added** | `health_score INT DEFAULT 50`, `warranty_expiry_date DATE NULL`, `last_maintenance_date DATE NULL` |
-| **Files Updated** | `database/schema.sql`, `fix-schema.sql`, `TODO.md` |
-| **Server Status** | Running http://localhost:3000 |
-| **Endpoints Fixed** | `/api/assets/health/alerts`, health scores, assignments |
+- [x] **Step 1:** Read backend/routes/dashboard.js ✓ Ready for edit
+- [x] **Step 2:** Added getUniqueDepartments() to backend/models/database.js ✓
+- [x] **Step 3:** Added getAssetDistribution to dashboardController.js and fixed routes.js ✓
 
-**Verification:** 
-- No more "Invalid column name" errors
-- Maintenance alerts page loads
-- Health scores calculate/store
-- `fix-schema.sql` safe to re-run
+- [x] **Step 4:** Created frontend/views/asset-distribution.html ✓\n- [x] **Step 5:** Created frontend/public/css/asset-distribution.css ✓\n- [x] **Step 6:** Created frontend/public/js/asset-distribution.js ✓
+- [x] **Step 7:** Added Asset Distribution nav link to sidebar.js ✓
+- [ ] **Step 8:** Test: Start server, login as admin, check /api/dashboard/asset-distribution, navigate to page, verify chart.
+- [ ] **Step 9:** Update this TODO.md (check off completed steps) and attempt_completion.
 
-**Final Test:** Visit maintenance alerts → All green! 🎉
+**Current Progress:** Starting Step 1.
+**Notes:** Reuse existing DB functions getAssetsByStatusAndDepartment(dept). Statuses: Missing, Allocated, Maintenance, Available.

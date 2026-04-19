@@ -952,6 +952,18 @@ async function recordMaintenance(maintenanceData) {
   }
 }
 
+async function getUniqueDepartments() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query(`SELECT DISTINCT department FROM assets WHERE department IS NOT NULL ORDER BY department`);
+    return result.recordset.map(row => row.department).filter(Boolean);
+  } catch (error) {
+    console.error('Error getting unique departments:', error);
+    throw error;
+  }
+}
+
 // ==================== EXPORTS ====================
 module.exports = {
   findUserByUsername,
@@ -988,6 +1000,8 @@ module.exports = {
   getDepreciation,
   getAuditedCount,
   getMaintainedCount,
-  getComplianceScore
+  getComplianceScore,
+  getUniqueDepartments
 };
+
 

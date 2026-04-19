@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Asset Distribution</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/asset-distribution.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">≡</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h2 class="page-title">Asset Distribution Dashboard</h2>
+        <p class="department-info" id="departmentInfo">Academic vs Administrative - 4 Status Categories Each</p>
+        
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>🎓 Academic Departments</h3>
+                <div style="height: 500px; position: relative;">
+                    <canvas id="academicChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>🏢 Administrative Departments</h3>
+                <div style="height: 500px; position: relative;">
+                    <canvas id="adminChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Loading charts...</div>
+        <div id="error" class="error" style="display: none;"></div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/role-ui.js"></script>
+    <script src="/js/asset-distribution.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore } = require('../models/database');
+const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore, getUniqueDepartments } = require('../models/database');
 
 async function getDashboardStats(req, res) {
   try {
@@ -66,6 +66,41 @@ async function getDashboardStats(req, res) {
 }
 
 
+async function getAssetDistribution(req, res) {
+  try {
+    const departments = await getUniqueDepartments();
+    const distribution = [];
+
+    for (const department of departments) {
+      const statusData = await getAssetsByStatusAndDepartment(department);
+      const breakdown = {
+        Available: 0,
+        Allocated: 0,
+        Maintenance: 0,
+        Missing: 0
+      };
+      statusData.forEach(item => {
+        breakdown[item.status] = item.count;
+      });
+      breakdown.total = Object.values(breakdown).reduce((sum, count) => sum + count, 0);
+      distribution.push({ department, ...breakdown });
+    }
+
+    res.json({
+      success: true,
+      distribution
+    });
+  } catch (error) {
+    console.error('Error getting asset distribution:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error loading asset distribution: ' + error.message 
+    });
+  }
+}
+
+
 module.exports = {
-  getDashboardStats
+  getDashboardStats,
+  getAssetDistribution
 };
