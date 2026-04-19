@@ -5,6 +5,8 @@ async function getDashboardStats(req, res) {
     const userRole = req.user.role;
     const userDepartment = req.user.department;
 
+    console.log('Dashboard Stats - User Role:', userRole, 'Department:', userDepartment);
+
     let totalAssets, assetsByStatus, maintenanceCost, depreciation, auditedCount, maintainedCount, complianceScore, totalAssetValue;
 
     if (userRole === 'Admin' || userRole === 'Viewer') {
@@ -25,6 +27,8 @@ async function getDashboardStats(req, res) {
       totalAssetValue = await getTotalAssetValue(userDepartment);
     }
 
+    console.log('Assets by status:', assetsByStatus);
+
     const statusBreakdown = {
       Available: 0,
       Allocated: 0,
@@ -35,6 +39,8 @@ async function getDashboardStats(req, res) {
     assetsByStatus.forEach(item => {
       statusBreakdown[item.status] = item.count;
     });
+
+    console.log('Status breakdown:', statusBreakdown);
 
     res.json({
       success: true,

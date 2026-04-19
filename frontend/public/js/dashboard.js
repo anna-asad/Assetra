@@ -135,9 +135,12 @@ async function loadDashboardStats() {
         });
 
         const data = await response.json();
+        console.log('Dashboard API Response:', data);
 
         if (data.success) {
             const stats = data.stats;
+            console.log('Stats object:', stats);
+            console.log('Status breakdown:', stats.statusBreakdown);
 
             // Show department info for Managers
             const departmentInfo = document.getElementById('departmentInfo');
@@ -160,6 +163,13 @@ async function loadDashboardStats() {
             document.getElementById('maintainedCount').textContent = stats.maintainedCount || 0;
 
             // Update bar chart
+            console.log('Updating bar chart with values:', {
+                Available: stats.statusBreakdown.Available || 0,
+                Allocated: stats.statusBreakdown.Allocated || 0,
+                Maintenance: stats.statusBreakdown.Maintenance || 0,
+                Missing: stats.statusBreakdown.Missing || 0
+            });
+            
             document.getElementById('availableCount').textContent = stats.statusBreakdown.Available || 0;
             document.getElementById('allocatedCount').textContent = stats.statusBreakdown.Allocated || 0;
             document.getElementById('maintenanceCount').textContent = stats.statusBreakdown.Maintenance || 0;
@@ -168,7 +178,7 @@ async function loadDashboardStats() {
             // Update bar heights based on values
             updateBarHeights(stats.statusBreakdown);
         } else {
-            console.error('Failed to load dashboard stats');
+            console.error('Failed to load dashboard stats:', data.message);
         }
     } catch (error) {
         console.error('Error loading dashboard:', error);
