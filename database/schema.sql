@@ -117,23 +117,40 @@ INSERT INTO assets (asset_tag, asset_name, category, status, department, purchas
 ('RO19', 'RO UPS', 'Hardware', 'Maintenance', 'Registrar Office', 20000, 1),
 ('AF20', 'AF Calculator', 'Hardware', 'Missing', 'Accounts & Finance', 1000, 1);
 GO
-
-
 USE assetra_db;
-DELETE FROM assets WHERE asset_tag LIKE 'TEST%'; -- Clean
+GO
 
--- 36 assets: 4 depts x 9 statuses cycle
-WITH test_data AS (
-  SELECT v.n as id, d.name as dept, s.status
-  FROM (VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12),(13),(14),(15),(16),(17),(18),(19),(20),(21),(22),(23),(24),(25),(26),(27),(28),(29),(30),(31),(32),(33),(34),(35),(36)) v(n)
-  CROSS JOIN (VALUES ('Computer Science'), ('Electrical Engineering'), ('Civil Engineering'), ('Management Sciences'), ('Sciences & Humanities IT Services'), ('Registrar Office'), ('Accounts & Finance'), ('Library'), ('Estate Office')) d(name)
-  CROSS JOIN (VALUES ('Available'), ('Allocated'), ('Maintenance'), ('Missing')) s(status)
-  WHERE v.n <= 36
-)
-INSERT INTO assets (asset_tag, asset_name, category, status, department, purchase_cost, created_by)
-SELECT CONCAT('TEST', ROW_NUMBER() OVER(ORDER BY dept, status)), CONCAT(dept, ' ', status), 'Hardware', status, dept, 50000, 1
-FROM test_data;
+-- 20 Random Assets (unequal: CS=6, EE=4, CE=3, MS=3, SH=2, RO=1, AF=1)
+INSERT INTO assets (asset_tag, asset_name, category, status, department, purchase_cost, created_by, description) VALUES
+-- Computer Science (6)
+('CS-L1', 'Dell Laptop', 'Computing', 'Available', 'Computer Science', 65000, 1, 'High performance'),
+('CS-D1', 'Desk', 'Furniture', 'Allocated', 'Computer Science', 12000, 1, 'Office desk'),
+('CS-P1', 'Printer', 'Office Equipment', 'Maintenance', 'Computer Science', 18000, 1, 'Color laser'),
+('CS-M1', 'Monitor', 'Computing', 'Available', 'Computer Science', 25000, 1, '27 inch'),
+('CS-K1', 'Keyboard', 'Computing', 'Allocated', 'Computer Science', 3000, 1, 'Mechanical'),
+('CS-M2', 'Mouse', 'Computing', 'Missing', 'Computer Science', 1500, 1, 'Wireless'),
+-- Electrical Engineering (4)
+('EE-O1', 'Oscilloscope', 'Electrical Equipment', 'Available', 'Electrical Engineering', 35000, 1, 'Digital'),
+('EE-D2', 'Desk Fan', 'Electrical Equipment', 'Maintenance', 'Electrical Engineering', 4000, 1, 'Industrial'),
+('EE-M3', 'Multimeter', 'Electrical Equipment', 'Allocated', 'Electrical Engineering', 6000, 1, 'Fluke'),
+('EE-C1', 'Chair', 'Furniture', 'Missing', 'Electrical Engineering', 6000, 1, 'Office'),
+-- Civil Engineering (3)
+('CE-L2', 'Laptop', 'Computing', 'Available', 'Civil Engineering', 55000, 1, 'Engineering CAD'),
+('CE-P2', 'Plotter', 'Office Equipment', 'Allocated', 'Civil Engineering', 80000, 1, 'Large format'),
+('CE-T1', 'Table', 'Furniture', 'Maintenance', 'Civil Engineering', 15000, 1, 'Conference'),
+-- Management Sciences (3)
+('MS-P3', 'Projector', 'Office Equipment', 'Missing', 'Management Sciences', 30000, 1, 'Portable'),
+('MS-PC1', 'PC', 'Computing', 'Available', 'Management Sciences', 45000, 1, 'Desktop'),
+('MS-S1', 'Scanner', 'Office Equipment', 'Allocated', 'Management Sciences', 12000, 1, 'Document'),
+-- Sciences & Humanities IT Services (2)
+('SH-S2', 'Server Rack', 'Computing', 'Maintenance', 'Sciences & Humanities IT Services', 120000, 1, 'Lab server'),
+('SH-C2', 'Cabinet', 'Furniture', 'Available', 'Sciences & Humanities IT Services', 25000, 1, 'IT storage'),
+-- Registrar Office (1)
+('RO-F1', 'Filing Cabinet', 'Furniture', 'Allocated', 'Registrar Office', 8000, 1, 'Records'),
+-- Accounts & Finance (1)
+('AF-C1', 'Calculator', 'Office Equipment', 'Missing', 'Accounts & Finance', 2000, 1, 'Financial');
+
+GO
 
 -- Verify
-SELECT department, status, COUNT(*) FROM assets WHERE asset_tag LIKE 'TEST%' GROUP BY department, status ORDER BY department, status;
-
+SELECT department, status, COUNT(*) FROM assets GROUP BY department, status ORDER BY department, status;

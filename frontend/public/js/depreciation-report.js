@@ -70,10 +70,10 @@ function displayReport(data) {
     
     // Display summary
     document.getElementById('totalAssets').textContent = summary.total_assets;
-    document.getElementById('totalPurchase').textContent = `$${summary.total_purchase_cost.toFixed(2)}`;
-    document.getElementById('currentValue').textContent = `$${summary.total_current_value.toFixed(2)}`;
-    document.getElementById('totalDep').textContent = `$${summary.total_accumulated_depreciation.toFixed(2)}`;
-    document.getElementById('totalSalvage').textContent = `$${summary.total_salvage_value.toFixed(2)}`;
+    document.getElementById('totalPurchase').textContent = `Rs.${summary.total_purchase_cost.toFixed(2)}`;
+    document.getElementById('currentValue').textContent = `Rs.${summary.total_current_value.toFixed(2)}`;
+    document.getElementById('totalDep').textContent = `Rs.${summary.total_accumulated_depreciation.toFixed(2)}`;
+    document.getElementById('totalSalvage').textContent = `Rs.${summary.total_salvage_value.toFixed(2)}`;
     document.getElementById('depRate').textContent = `${summary.total_depreciation_percentage}%`;
     
     // Display assets table
@@ -89,11 +89,11 @@ function displayReport(data) {
                 <td>${asset.asset_tag}</td>
                 <td>${asset.asset_name}</td>
                 <td>${asset.department || '-'}</td>
-                <td>$${parseFloat(asset.purchase_cost).toFixed(2)}</td>
+                <td>Rs.${parseFloat(asset.purchase_cost).toFixed(2)}</td>
                 <td>${asset.years_in_use} years</td>
-                <td>$${parseFloat(asset.annual_depreciation).toFixed(2)}</td>
-                <td>$${parseFloat(asset.accumulated_depreciation).toFixed(2)}</td>
-                <td><strong>$${parseFloat(asset.current_book_value).toFixed(2)}</strong></td>
+                <td>Rs.${parseFloat(asset.annual_depreciation).toFixed(2)}</td>
+                <td>Rs.${parseFloat(asset.accumulated_depreciation).toFixed(2)}</td>
+                <td><strong>Rs.${parseFloat(asset.current_book_value).toFixed(2)}</strong></td>
             `;
             tbody.appendChild(row);
         });

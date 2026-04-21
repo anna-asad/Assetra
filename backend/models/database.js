@@ -964,6 +964,43 @@ async function getUniqueDepartments() {
   }
 }
 
+// ==================== ASSETS BY VALUE ====================
+async function getAssetsByValue(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT TOP 50 
+        asset_name, 
+        department, 
+        status, 
+        purchase_cost
+      FROM assets 
+      WHERE purchase_cost > 0
+    `;
+    
+    const request = pool.request();
+    
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY purchase_cost DESC';
+    
+    const result = await request.query(query);
+    
+    return result.recordset.map(asset => ({
+      asset_name: asset.asset_name,
+      department: asset.department || '-',
+      status: asset.status,
+      purchase_cost: parseFloat(asset.purchase_cost)
+    }));
+  } catch (error) {
+    console.error('Error getting assets by value:', error);
+    throw error;
+  }
+}
+
 // ==================== EXPORTS ====================
 module.exports = {
   findUserByUsername,
@@ -1001,7 +1038,9 @@ module.exports = {
   getAuditedCount,
   getMaintainedCount,
   getComplianceScore,
-  getUniqueDepartments
+  getUniqueDepartments,
+  getAssetsByValue
 };
+
 
 

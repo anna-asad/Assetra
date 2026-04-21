@@ -1,4 +1,4 @@
-const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore, getUniqueDepartments } = require('../models/database');
+const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore, getUniqueDepartments, getAssetsByValue } = require('../models/database');
 
 async function getDashboardStats(req, res) {
   try {
@@ -119,7 +119,23 @@ async function getAssetDistribution(req, res) {
   }
 }
 
+async function getAssetsByValueController(req, res) {
+  try {
+    const { role, department } = req.user;
+    const deptFilter = (role === 'Admin' || role === 'Viewer') ? null : department;
+    const assets = await getAssetsByValue(deptFilter);
+    res.json({ success: true, assets });
+  } catch (error) {
+    console.error('Error getting assets by value:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error loading assets: ' + error.message 
+    });
+  }
+}
+
 module.exports = {
   getDashboardStats,
-  getAssetDistribution
+  getAssetDistribution,
+  getAssetsByValueController
 };

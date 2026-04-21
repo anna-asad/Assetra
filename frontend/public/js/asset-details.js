@@ -84,7 +84,8 @@ async function loadAssetDetails() {
             document.getElementById('department').textContent = asset.department || '-';
             document.getElementById('location').textContent = asset.location || '-';
             document.getElementById('purchaseDate').textContent = asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString() : '-';
-            document.getElementById('purchaseCost').textContent = asset.purchase_cost ? `$${parseFloat(asset.purchase_cost).toFixed(2)}` : '-';
+            document.getElementById('purchaseCost').textContent = asset.purchase_cost ? `Rs.${parseFloat(asset.purchase_cost).toFixed(2)}` : '-';
+
             document.getElementById('description').textContent = asset.description || '-';
             document.getElementById('createdAt').textContent = asset.created_at ? new Date(asset.created_at).toLocaleString() : '-';
             
@@ -168,13 +169,13 @@ async function loadFinancialData() {
 }
 
 function displayFinancialData(dep) {
-    document.getElementById('finPurchaseCost').textContent = `$${dep.purchase_cost.toFixed(2)}`;
-    document.getElementById('finSalvageValue').textContent = `$${dep.salvage_value.toFixed(2)}`;
+    document.getElementById('finPurchaseCost').textContent = `Rs.${dep.purchase_cost.toFixed(2)}`;
+    document.getElementById('finSalvageValue').textContent = `Rs.${dep.salvage_value.toFixed(2)}`;
     document.getElementById('finUsefulLife').textContent = `${dep.useful_life_years} years`;
     document.getElementById('finYearsInUse').textContent = `${dep.years_in_use} years`;
-    document.getElementById('finBookValue').textContent = `$${dep.current_book_value.toFixed(2)}`;
-    document.getElementById('finAnnualDep').textContent = `$${dep.annual_depreciation.toFixed(2)}`;
-    document.getElementById('finAccumDep').textContent = `$${dep.accumulated_depreciation.toFixed(2)}`;
+    document.getElementById('finBookValue').textContent = `Rs.${dep.current_book_value.toFixed(2)}`;
+    document.getElementById('finAnnualDep').textContent = `Rs.${dep.annual_depreciation.toFixed(2)}`;
+    document.getElementById('finAccumDep').textContent = `Rs.${dep.accumulated_depreciation.toFixed(2)}`;
     document.getElementById('finDepRate').textContent = `${dep.depreciation_rate}%`;
     
     // Draw simple depreciation chart
@@ -278,7 +279,7 @@ function drawDepreciationChart(dep) {
     for (let i = 0; i <= 5; i++) {
         const y = padding + (chartHeight / 5) * i;
         const value = maxValue - (maxValue / 5) * i;
-        ctx.fillText(`$${value.toFixed(0)}`, padding - 10, y + 5);
+        ctx.fillText(`Rs.${value.toFixed(0)}`, padding - 10, y + 5);
     }
     
     // Title

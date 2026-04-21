@@ -55,6 +55,7 @@ modal.addEventListener('click', (e) => {
 });
 
 async function openAssetsModal() {
+    document.querySelector('.modal-header h2').textContent = 'Assets by Value';
     modal.style.display = 'flex';
     await loadAssetsForValue();
 }
@@ -95,7 +96,38 @@ async function loadAssetsByStatus(status) {
 }
 
 async function loadAssetsForValue() {
-    await loadAssetsByStatus(); // All assets for value modal
+    const loadingMessage = document.getElementById('modalLoadingMessage');
+    const errorMessage = document.getElementById('modalErrorMessage');
+    const assetsTable = document.getElementById('assetsValueTable');
+    const noAssets = document.getElementById('noAssetsValue');
+    
+    loadingMessage.style.display = 'block';
+    errorMessage.style.display = 'none';
+    assetsTable.style.display = 'none';
+    noAssets.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/dashboard/assets-by-value', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayAssetsForValue(data.assets);
+        } else {
+            errorMessage.textContent = data.message || 'Failed to load assets';
+            errorMessage.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading assets by value:', error);
+        errorMessage.textContent = 'Connection error. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        loadingMessage.style.display = 'none';
+    }
 }
 
 async function openMaintenanceModal() {
@@ -115,6 +147,9 @@ function displayAssetsForValue(assets) {
     const noAssets = document.getElementById('noAssetsValue');
     const tbody = document.getElementById('assetsValueTableBody');
     
+    // Sort by price DESC (backend already sorts, but frontend backup)
+    assets.sort((a, b) => (b.purchase_cost || 0) - (a.purchase_cost || 0));
+    
     if (assets.length === 0) {
         noAssets.style.display = 'block';
         return;
@@ -122,7 +157,7 @@ function displayAssetsForValue(assets) {
     
     tbody.innerHTML = '';
     
-    assets.forEach(asset => {
+    assets.forEach((asset, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${asset.asset_name}</td>
