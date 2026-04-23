@@ -1001,6 +1001,245 @@ async function getAssetsByValue(department = null) {
   }
 }
 
+// ==================== AUDIT SCHEDULING FUNCTIONS ====================
+async function createScheduledAudit(scheduleData) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('schedule_name', sql.NVarChar, scheduleData.schedule_name)
+      .input('frequency', sql.NVarChar, scheduleData.frequency)
+      .input('schedule_time', sql.Time, scheduleData.schedule_time)
+      .input('day_of_week', sql.Int, scheduleData.day_of_week || null)
+      .input('day_of_month', sql.Int, scheduleData.day_of_month || null)
+      .input('created_by', sql.Int, scheduleData.created_by)
+      .input('next_run_at', sql.DateTime, scheduleData.next_run_at)
+      .query(`
+        INSERT INTO scheduled_audits (schedule_name, frequency, schedule_time, day_of_week, day_of_month, created_by, next_run_at)
+        OUTPUT INSERTED.*
+        VALUES (@schedule_name, @frequency, @schedule_time, @day_of_week, @day_of_month, @created_by, @next_run_at)
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error creating scheduled audit:', error);
+    throw error;
+  }
+}
+
+async function getAllScheduledAudits() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query(`
+        SELECT sa.*, u.full_name as created_by_name
+        FROM scheduled_audits sa
+        LEFT JOIN users u ON sa.created_by = u.user_id
+        ORDER BY sa.created_at DESC
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting scheduled audits:', error);
+    throw error;
+  }
+}
+
+async function updateScheduledAudit(scheduleId, updateData) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('schedule_id', sql.Int, scheduleId)
+      .input('is_active', sql.Bit, updateData.is_active)
+      .query(`
+        UPDATE scheduled_audits 
+        SET is_active = @is_active
+        OUTPUT INSERTED.*
+        WHERE schedule_id = @schedule_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error updating scheduled audit:', error);
+    throw error;
+  }
+}
+
+async function deleteScheduledAudit(scheduleId) {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('schedule_id', sql.Int, scheduleId)
+      .query('DELETE FROM scheduled_audits WHERE schedule_id = @schedule_id');
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting scheduled audit:', error);
+    throw error;
+  }
+}
+
+async function executeAudit(executionData) {
+  try {
+    const pool = await getConnection();
+    
+    // Get all assets with their current status
+    const assetsResult = await pool.request()
+      .query(`
+        SELECT 
+          asset_id, asset_tag, asset_name, status, department, location, health_score,
+          last_maintenance_date, warranty_expiry_date
+        FROM assets
+      `);
+    
+    const assets = assetsResult.recordset;
+    
+    // Calculate statistics
+    const stats = {
+      total_assets: assets.length,
+      available_count: assets.filter(a => a.status === 'Available').length,
+      allocated_count: assets.filter(a => a.status === 'Allocated').length,
+      maintenance_count: assets.filter(a => a.status === 'Maintenance').length,
+      missing_count: assets.filter(a => a.status === 'Missing').length,
+      overdue_maintenance_count: 0
+    };
+    
+    // Create audit execution record
+    const executionResult = await pool.request()
+      .input('schedule_id', sql.Int, executionData.schedule_id || null)
+      .input('execution_type', sql.NVarChar, executionData.execution_type)
+      .input('executed_by', sql.Int, executionData.executed_by)
+      .input('total_assets', sql.Int, stats.total_assets)
+      .input('available_count', sql.Int, stats.available_count)
+      .input('allocated_count', sql.Int, stats.allocated_count)
+      .input('maintenance_count', sql.Int, stats.maintenance_count)
+      .input('missing_count', sql.Int, stats.missing_count)
+      .input('overdue_maintenance_count', sql.Int, stats.overdue_maintenance_count)
+      .input('notes', sql.NVarChar, executionData.notes || null)
+      .query(`
+        INSERT INTO audit_executions 
+        (schedule_id, execution_type, executed_by, total_assets, available_count, allocated_count, 
+         maintenance_count, missing_count, overdue_maintenance_count, notes)
+        OUTPUT INSERTED.*
+        VALUES (@schedule_id, @execution_type, @executed_by, @total_assets, @available_count, 
+                @allocated_count, @maintenance_count, @missing_count, @overdue_maintenance_count, @notes)
+      `);
+    
+    const execution = executionResult.recordset[0];
+    
+    // Insert audit results for each asset
+    for (const asset of assets) {
+      const isOverdueMaintenance = asset.last_maintenance_date && 
+        ((new Date() - new Date(asset.last_maintenance_date)) / (1000 * 60 * 60 * 24)) > 180;
+      
+      if (isOverdueMaintenance) stats.overdue_maintenance_count++;
+      
+      await pool.request()
+        .input('execution_id', sql.Int, execution.execution_id)
+        .input('asset_id', sql.Int, asset.asset_id)
+        .input('asset_tag', sql.NVarChar, asset.asset_tag)
+        .input('asset_name', sql.NVarChar, asset.asset_name)
+        .input('status', sql.NVarChar, asset.status)
+        .input('department', sql.NVarChar, asset.department)
+        .input('location', sql.NVarChar, asset.location)
+        .input('health_score', sql.Int, asset.health_score)
+        .input('is_overdue_maintenance', sql.Bit, isOverdueMaintenance ? 1 : 0)
+        .input('is_missing', sql.Bit, asset.status === 'Missing' ? 1 : 0)
+        .query(`
+          INSERT INTO audit_results 
+          (execution_id, asset_id, asset_tag, asset_name, status, department, location, 
+           health_score, is_overdue_maintenance, is_missing)
+          VALUES (@execution_id, @asset_id, @asset_tag, @asset_name, @status, @department, 
+                  @location, @health_score, @is_overdue_maintenance, @is_missing)
+        `);
+    }
+    
+    // Update overdue count in execution
+    await pool.request()
+      .input('execution_id', sql.Int, execution.execution_id)
+      .input('overdue_count', sql.Int, stats.overdue_maintenance_count)
+      .query('UPDATE audit_executions SET overdue_maintenance_count = @overdue_count WHERE execution_id = @execution_id');
+    
+    return { ...execution, ...stats };
+  } catch (error) {
+    console.error('Error executing audit:', error);
+    throw error;
+  }
+}
+
+async function getAuditExecutions(limit = 50) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('limit', sql.Int, limit)
+      .query(`
+        SELECT TOP (@limit) ae.*, u.full_name as executed_by_name, sa.schedule_name
+        FROM audit_executions ae
+        LEFT JOIN users u ON ae.executed_by = u.user_id
+        LEFT JOIN scheduled_audits sa ON ae.schedule_id = sa.schedule_id
+        ORDER BY ae.executed_at DESC
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting audit executions:', error);
+    throw error;
+  }
+}
+
+async function getAuditExecutionById(executionId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('execution_id', sql.Int, executionId)
+      .query(`
+        SELECT ae.*, u.full_name as executed_by_name, sa.schedule_name
+        FROM audit_executions ae
+        LEFT JOIN users u ON ae.executed_by = u.user_id
+        LEFT JOIN scheduled_audits sa ON ae.schedule_id = sa.schedule_id
+        WHERE ae.execution_id = @execution_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error getting audit execution:', error);
+    throw error;
+  }
+}
+
+async function getAuditResults(executionId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('execution_id', sql.Int, executionId)
+      .query(`
+        SELECT * FROM audit_results
+        WHERE execution_id = @execution_id
+        ORDER BY 
+          CASE WHEN is_missing = 1 THEN 1
+               WHEN is_overdue_maintenance = 1 THEN 2
+               WHEN health_score < 50 THEN 3
+               ELSE 4 END,
+          asset_name
+      `);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting audit results:', error);
+    throw error;
+  }
+}
+
+async function updateScheduleNextRun(scheduleId, nextRunAt) {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('schedule_id', sql.Int, scheduleId)
+      .input('next_run_at', sql.DateTime, nextRunAt)
+      .input('last_run_at', sql.DateTime, new Date())
+      .query(`
+        UPDATE scheduled_audits 
+        SET next_run_at = @next_run_at, last_run_at = @last_run_at
+        WHERE schedule_id = @schedule_id
+      `);
+  } catch (error) {
+    console.error('Error updating schedule next run:', error);
+    throw error;
+  }
+}
+
 // ==================== EXPORTS ====================
 module.exports = {
   findUserByUsername,
@@ -1039,7 +1278,16 @@ module.exports = {
   getMaintainedCount,
   getComplianceScore,
   getUniqueDepartments,
-  getAssetsByValue
+  getAssetsByValue,
+  createScheduledAudit,
+  getAllScheduledAudits,
+  updateScheduledAudit,
+  deleteScheduledAudit,
+  executeAudit,
+  getAuditExecutions,
+  getAuditExecutionById,
+  getAuditResults,
+  updateScheduleNextRun
 };
 
 

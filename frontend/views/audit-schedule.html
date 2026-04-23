@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Audit Scheduling</title>
+    <link rel="stylesheet" href="/css/audit-schedule.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">≡</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Audit Scheduling</h2>
+            <div class="header-actions">
+                <button class="btn-primary" id="createScheduleBtn">Create Schedule</button>
+                <button class="btn-secondary" id="runManualAuditBtn">Run Manual Audit</button>
+            </div>
+        </div>
+
+        <!-- Scheduled Audits Section -->
+        <div class="section-card">
+            <h3>Scheduled Audits</h3>
+            <div id="schedulesLoading" class="loading-message">Loading schedules...</div>
+            <div id="schedulesError" class="error-message" style="display: none;"></div>
+            <div id="schedulesContainer" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Schedule Name</th>
+                            <th>Frequency</th>
+                            <th>Time</th>
+                            <th>Next Run</th>
+                            <th>Last Run</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedulesTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="noSchedules" class="no-data" style="display: none;">
+                <p>No scheduled audits found. Create one to get started.</p>
+            </div>
+        </div>
+
+        <!-- Audit History Section -->
+        <div class="section-card">
+            <h3>Audit Execution History</h3>
+            <div id="historyLoading" class="loading-message">Loading history...</div>
+            <div id="historyError" class="error-message" style="display: none;"></div>
+            <div id="historyContainer" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Execution Date</th>
+                            <th>Type</th>
+                            <th>Total Assets</th>
+                            <th>Missing</th>
+                            <th>Overdue Maintenance</th>
+                            <th>Executed By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="noHistory" class="no-data" style="display: none;">
+                <p>No audit history found.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Schedule Modal -->
+    <div id="createScheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Audit Schedule</h2>
+                <button class="modal-close" id="closeCreateModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createScheduleForm">
+                    <div class="form-group">
+                        <label>Schedule Name *</label>
+                        <input type="text" id="scheduleName" required placeholder="e.g., Weekly Asset Audit">
+                    </div>
+                    <div class="form-group">
+                        <label>Frequency *</label>
+                        <select id="frequency" required>
+                            <option value="">Select frequency</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time *</label>
+                        <input type="time" id="scheduleTime" required>
+                    </div>
+                    <div class="form-group" id="dayOfWeekGroup" style="display: none;">
+                        <label>Day of Week</label>
+                        <select id="dayOfWeek">
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dayOfMonthGroup" style="display: none;">
+                        <label>Day of Month</label>
+                        <input type="number" id="dayOfMonth" min="1" max="31" placeholder="1-31">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancelCreateBtn">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Details Modal -->
+    <div id="auditDetailsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Audit Execution Details</h2>
+                <button class="modal-close" id="closeDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="detailsLoading" class="loading-message">Loading details...</div>
+                <div id="detailsContent" style="display: none;">
+                    <div class="audit-summary">
+                        <div class="summary-item">
+                            <span class="label">Executed:</span>
+                            <span id="detailExecutedAt"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">By:</span>
+                            <span id="detailExecutedBy"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Total Assets:</span>
+                            <span id="detailTotalAssets"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Missing:</span>
+                            <span id="detailMissing" class="badge-red"></span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">Overdue Maintenance:</span>
+                            <span id="detailOverdue" class="badge-yellow"></span>
+                        </div>
+                    </div>
+                    <h3>Asset Details</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Asset Tag</th>
+                                <th>Asset Name</th>
+                                <th>Status</th>
+                                <th>Department</th>
+                                <th>Health Score</th>
+                                <th>Issues</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/audit-schedule.js"></script>
+</body>
+</html>

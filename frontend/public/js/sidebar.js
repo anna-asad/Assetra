@@ -27,6 +27,12 @@ function initSidebar() {
                         <span class="menu-text">Financial Report</span>
                     </a>
                 </li>
+                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
+                    <a href="/views/audit-schedule.html" class="${currentPage.includes('audit-schedule') ? 'active' : ''}">
+                        <span class="menu-icon">📅</span>
+                        <span class="menu-text">Audit Scheduling</span>
+                    </a>
+                </li>
                 <li>
                     <a href="/views/profile.html" class="${currentPage.includes('profile') ? 'active' : ''}">
                         <span class="menu-icon">👤</span>

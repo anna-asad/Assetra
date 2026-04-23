@@ -154,3 +154,82 @@ GO
 
 -- Verify
 SELECT department, status, COUNT(*) FROM assets GROUP BY department, status ORDER BY department, status;
+
+
+-- ==================== AUDIT SCHEDULING MODULE ====================
+
+-- Maintenance Records Table
+CREATE TABLE maintenance_records (
+    record_id INT PRIMARY KEY IDENTITY(1,1),
+    asset_id INT NOT NULL,
+    maintenance_date DATE NOT NULL,
+    maintenance_type NVARCHAR(50) NOT NULL,
+    notes NVARCHAR(MAX),
+    performed_by INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE,
+    FOREIGN KEY (performed_by) REFERENCES users(user_id)
+);
+GO
+
+-- Scheduled Audits Table
+CREATE TABLE scheduled_audits (
+    schedule_id INT PRIMARY KEY IDENTITY(1,1),
+    schedule_name NVARCHAR(100) NOT NULL,
+    frequency NVARCHAR(20) NOT NULL CHECK (frequency IN ('daily', 'weekly', 'monthly')),
+    schedule_time TIME NOT NULL,
+    day_of_week INT NULL CHECK (day_of_week BETWEEN 0 AND 6), -- 0=Sunday, 6=Saturday
+    day_of_month INT NULL CHECK (day_of_month BETWEEN 1 AND 31),
+    is_active BIT DEFAULT 1,
+    created_by INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    last_run_at DATETIME NULL,
+    next_run_at DATETIME NULL,
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
+GO
+
+-- Audit Executions Table
+CREATE TABLE audit_executions (
+    execution_id INT PRIMARY KEY IDENTITY(1,1),
+    schedule_id INT NULL,
+    execution_type NVARCHAR(20) NOT NULL CHECK (execution_type IN ('scheduled', 'manual')),
+    executed_by INT NOT NULL,
+    executed_at DATETIME DEFAULT GETDATE(),
+    total_assets INT DEFAULT 0,
+    available_count INT DEFAULT 0,
+    allocated_count INT DEFAULT 0,
+    maintenance_count INT DEFAULT 0,
+    missing_count INT DEFAULT 0,
+    overdue_maintenance_count INT DEFAULT 0,
+    status NVARCHAR(20) DEFAULT 'completed' CHECK (status IN ('completed', 'failed')),
+    notes NVARCHAR(MAX) NULL,
+    FOREIGN KEY (schedule_id) REFERENCES scheduled_audits(schedule_id) ON DELETE SET NULL,
+    FOREIGN KEY (executed_by) REFERENCES users(user_id)
+);
+GO
+
+-- Audit Results Table (detailed results per asset)
+CREATE TABLE audit_results (
+    result_id INT PRIMARY KEY IDENTITY(1,1),
+    execution_id INT NOT NULL,
+    asset_id INT NOT NULL,
+    asset_tag NVARCHAR(50),
+    asset_name NVARCHAR(100),
+    status NVARCHAR(50),
+    department NVARCHAR(100),
+    location NVARCHAR(200),
+    health_score INT,
+    is_overdue_maintenance BIT DEFAULT 0,
+    is_missing BIT DEFAULT 0,
+    notes NVARCHAR(MAX) NULL,
+    FOREIGN KEY (execution_id) REFERENCES audit_executions(execution_id) ON DELETE CASCADE,
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id) ON DELETE CASCADE
+);
+GO
+
+-- Indexes for performance
+CREATE INDEX idx_scheduled_audits_active ON scheduled_audits(is_active, next_run_at);
+CREATE INDEX idx_audit_executions_date ON audit_executions(executed_at DESC);
+CREATE INDEX idx_audit_results_execution ON audit_results(execution_id);
+GO
