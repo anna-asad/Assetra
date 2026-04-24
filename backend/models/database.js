@@ -382,10 +382,13 @@ async function getAuditedCount(department = null) {
 async function getMaintainedCount(department = null) {
   try {
     const pool = await getConnection();
-let query = `SELECT COUNT(*) as count FROM assets WHERE status IN ('Available', 'Allocated')`;
+    let query = `SELECT COUNT(DISTINCT a.asset_id) as count 
+      FROM assets a
+      LEFT JOIN maintenance_records mr ON a.asset_id = mr.asset_id
+      WHERE a.status = 'Maintenance' OR mr.maintenance_id IS NOT NULL`;
     const request = pool.request();
     if (department) {
-query += ` AND department = @department`;
+      query += ` AND a.department = @department`;
       request.input('department', sql.NVarChar, department);
     }
     const result = await request.query(query);
