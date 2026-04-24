@@ -6,6 +6,7 @@ const authRoutes = require('../routes/auth');
 const assetRoutes = require('../routes/assets');
 const dashboardRoutes = require('../routes/dashboard');
 const auditScheduleRoutes = require('../routes/auditSchedule');
+const anomalyRoutes = require('../routes/anomalies');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/audit-schedule', auditScheduleRoutes);
+app.use('/api/anomalies', anomalyRoutes);
 
 // Root route - redirect to login
 app.get('/', (req, res) => {

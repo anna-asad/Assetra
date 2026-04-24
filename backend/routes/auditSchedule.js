@@ -16,20 +16,20 @@ const {
 
 // All routes require authentication
 router.use(authenticateToken);  
-// Create new schedule (Admin only)
-router.post('/schedules', checkRole(['Admin']), createSchedule);
+// Create new schedule (Admin and Manager)
+router.post('/schedules', checkRole(['Admin', 'Manager']), createSchedule);
 
 // Get all schedules
 router.get('/schedules', getSchedules);
 
-// Toggle schedule active status (Admin only)
-router.patch('/schedules/:scheduleId/toggle', checkRole(['Admin']), toggleSchedule);
+// Toggle schedule active status (Admin and Manager)
+router.patch('/schedules/:scheduleId/toggle', checkRole(['Admin', 'Manager']), toggleSchedule);
 
-// Delete schedule (Admin only)
-router.delete('/schedules/:scheduleId', checkRole(['Admin']), deleteSchedule);
+// Delete schedule (Admin and Manager)
+router.delete('/schedules/:scheduleId', checkRole(['Admin', 'Manager']), deleteSchedule);
 
-// Execute audit manually (Admin only)
-router.post('/execute', checkRole(['Admin']), runAudit);
+// Execute audit manually (Admin and Manager)
+router.post('/execute', checkRole(['Admin', 'Manager']), runAudit);
 
 // Get execution history
 router.get('/executions', getExecutionHistory);

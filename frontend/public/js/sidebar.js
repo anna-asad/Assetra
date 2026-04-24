@@ -22,6 +22,12 @@ function initSidebar() {
                     </a>
                 </li>
                 <li>
+                    <a href="/views/anomalies.html" class="${currentPage.includes('anomalies') ? 'active' : ''}">
+                        <span class="menu-icon">🔍</span>
+                        <span class="menu-text">Anomaly Detection</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/views/depreciation-report.html" class="${currentPage.includes('depreciation') ? 'active' : ''}">
                         <span class="menu-icon">💰</span>
                         <span class="menu-text">Financial Report</span>

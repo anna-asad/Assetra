@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Anomaly Detection</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/anomalies.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-icon menu-toggle">≡</div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <div class="user-avatar"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h2 class="page-title">Anomaly Detection Report</h2>
+              
+
+        
+        <div class="anomaly-summary">
+            <div class="summary-card">
+                <div class="summary-value" id="totalAnomalies">0</div>
+                <div class="summary-label">Total Anomalies</div>
+            </div>
+            <div class="summary-card critical" id="criticalCard">
+                <div class="summary-value" id="criticalCount">0</div>
+                <div class="summary-label">Critical Issues</div>
+            </div>
+            <div class="summary-card missing">
+                <div class="summary-value" id="missingCount">0</div>
+                <div class="summary-label">Missing Assets</div>
+            </div>
+            <div class="summary-card overdue">
+                <div class="summary-value" id="overdueCount">0</div>
+                <div class="summary-label">Overdue Assets</div>
+            </div>
+            <div class="summary-card unused">
+                <div class="summary-value" id="unusedCount">0</div>
+                <div class="summary-label">Unused Assets</div>
+            </div>
+            <div class="summary-card pattern">
+                <div class="summary-value" id="patternCount">0</div>
+                <div class="summary-label">Suspicious Patterns</div>
+            </div>
+        </div>
+
+        <!-- Suspicious Patterns Section -->
+        <div class="anomaly-section" id="patternsSection" style="display: none;">
+            <h3 class="section-title">🚨 Suspicious Patterns</h3>
+            <div class="anomaly-table-container">
+                <table class="anomaly-table">
+                    <thead>
+                        <tr>
+                            <th>Pattern Type</th>
+                            <th>Department</th>
+                            <th>Count</th>
+                            <th>Threshold</th>
+                            <th>Severity</th>
+                            <th>Recommendation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patternsTableBody">
+                    </tbody>
+                </table>
+                <div id="noPatterns" class="no-data-message" style="display: none;">
+                    No suspicious patterns detected.
+                </div>
+            </div>
+        </div>
+
+        <!-- Missing Assets Section -->
+        <div class="anomaly-section" id="missingSection" style="display: none;">
+            <h3 class="section-title">❌ Missing Assets</h3>
+            <div class="filter-controls">
+                <input type="search" id="missingSearch" placeholder="Search by asset name or tag...">
+                <select id="missingSeverityFilter">
+                    <option value="">All Severity Levels</option>
+                    <option value="Critical">Critical</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                </select>
+            </div>
+            <div class="anomaly-table-container">
+                <table class="anomaly-table">
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Asset Name</th>
+                            <th>Department</th>
+                            <th>Category</th>
+                            <th>Days Missing</th>
+                            <th>Value (₨)</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="missingTableBody">
+                    </tbody>
+                </table>
+                <div id="noMissing" class="no-data-message" style="display: none;">
+                    No missing assets detected.
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Assets Section -->
+        <div class="anomaly-section" id="overdueSection" style="display: none;">
+            <h3 class="section-title">⏰ Overdue Assets (Not Returned)</h3>
+            <div class="filter-controls">
+                <input type="search" id="overdueSearch" placeholder="Search by asset name or tag...">
+                <select id="overdueSeverityFilter">
+                    <option value="">All Severity Levels</option>
+                    <option value="Critical">Critical (>90 days)</option>
+                    <option value="High">High (>60 days)</option>
+                    <option value="Medium">Medium (>30 days)</option>
+                </select>
+            </div>
+            <div class="anomaly-table-container">
+                <table class="anomaly-table">
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Asset Name</th>
+                            <th>Assigned To</th>
+                            <th>Department</th>
+                            <th>Days Allocated</th>
+                            <th>Value (₨)</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overdueTableBody">
+                    </tbody>
+                </table>
+                <div id="noOverdue" class="no-data-message" style="display: none;">
+                    No overdue assets detected.
+                </div>
+            </div>
+        </div>
+
+        <!-- Unused Assets Section -->
+        <div class="anomaly-section" id="unusedSection" style="display: none;">
+            <h3 class="section-title">📦 Unused Assets (No Activity)</h3>
+            <div class="filter-controls">
+                <input type="search" id="unusedSearch" placeholder="Search by asset name or tag...">
+                <select id="unusedSeverityFilter">
+                    <option value="">All Severity Levels</option>
+                    <option value="Critical">Critical (>1 year)</option>
+                    <option value="High">High (>6 months)</option>
+                    <option value="Medium">Medium (>3 months)</option>
+                </select>
+            </div>
+            <div class="anomaly-table-container">
+                <table class="anomaly-table">
+                    <thead>
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Asset Name</th>
+                            <th>Department</th>
+                            <th>Category</th>
+                            <th>Days Without Activity</th>
+                            <th>Value (₨)</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unusedTableBody">
+                    </tbody>
+                </table>
+                <div id="noUnused" class="no-data-message" style="display: none;">
+                    No unused assets detected.
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Report Button -->
+        <div class="export-section">
+            <button class="btn btn-primary" id="exportBtn">📥 Export Report</button>
+            <button class="btn btn-secondary" id="refreshBtn">🔄 Refresh</button>
+        </div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/anomalies.js"></script>
+</body>
+</html>

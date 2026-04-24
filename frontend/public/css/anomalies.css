@@ -1,0 +1,313 @@
+/* Anomaly Detection Styles - Matching Dashboard Dark Theme */
+
+.page-subtitle {
+    color: #d8a4d8;
+    margin-top: -10px;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.anomaly-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(232, 180, 232, 0.4);
+    background: linear-gradient(135deg, #ab8bab 0%, #9b7b9b 100%);
+}
+
+.summary-card.critical {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+.summary-card.critical:hover {
+    background: linear-gradient(135deg, #d0493b 0%, #b94236 100%);
+    box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);
+}
+
+.summary-card.missing {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.summary-card.missing:hover {
+    background: linear-gradient(135deg, #f75c4c 0%, #d0493b 100%);
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+}
+
+.summary-card.overdue {
+    background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+}
+
+.summary-card.overdue:hover {
+    background: linear-gradient(135deg, #ffac22 0%, #e69920 100%);
+    box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+}
+
+.summary-card.unused {
+    background: linear-gradient(135deg, #5b4b6b 0%, #4b3b5b 100%);
+}
+
+.summary-card.unused:hover {
+    background: linear-gradient(135deg, #6b5b7b 0%, #5b4b6b 100%);
+    box-shadow: 0 8px 25px rgba(91, 75, 107, 0.4);
+}
+
+.summary-card.pattern {
+    background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+}
+
+.summary-card.pattern:hover {
+    background: linear-gradient(135deg, #9e54bd 0%, #8d4ca8 100%);
+    box-shadow: 0 8px 25px rgba(142, 68, 173, 0.4);
+}
+
+.summary-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #e8b4e8;
+}
+
+.summary-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+    color: #ffffff;
+}
+
+.anomaly-section {
+    background: linear-gradient(135deg, #2a2a2a 0%, #333333 100%);
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-left: 5px solid #9b7b9b;
+}
+
+.anomaly-section.critical-section {
+    border-left-color: #c0392b;
+}
+
+.anomaly-section.missing-section {
+    border-left-color: #e74c3c;
+}
+
+.anomaly-section.overdue-section {
+    border-left-color: #f39c12;
+}
+
+.anomaly-section.unused-section {
+    border-left-color: #5b4b6b;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #e8b4e8;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-controls input,
+.filter-controls select {
+    padding: 8px 12px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    font-size: 13px;
+    flex: 1;
+    min-width: 150px;
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+.filter-controls input::placeholder {
+    color: #aaa;
+}
+
+.anomaly-table-container {
+    overflow-x: auto;
+    margin-bottom: 15px;
+}
+
+.anomaly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.anomaly-table thead {
+    background-color: #3a3a3a;
+    border-bottom: 2px solid #9b7b9b;
+}
+
+.anomaly-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #e8b4e8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.anomaly-table td {
+    padding: 12px;
+    border-bottom: 1px solid #444;
+    color: #ffffff;
+}
+
+.anomaly-table tbody tr:hover {
+    background-color: #3a3a3a;
+}
+
+.severity-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.severity-critical {
+    background-color: #c0392b;
+    color: #ffffff;
+}
+
+.severity-high {
+    background-color: #e67e22;
+    color: #ffffff;
+}
+
+.severity-medium {
+    background-color: #f1c40f;
+    color: #333333;
+}
+
+.severity-low {
+    background-color: #3498db;
+    color: #ffffff;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 40px;
+    color: #aaa;
+    font-style: italic;
+    background: #3a3a3a;
+    border-radius: 5px;
+}
+
+.export-section {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #e8b4e8;
+    color: #333;
+}
+
+.btn-primary:hover {
+    background-color: #d8a4d8;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(232, 180, 232, 0.4);
+}
+
+.btn-secondary {
+    background: #4a4a4a;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+.btn-secondary:hover {
+    background: #5a5a5a;
+}
+
+/* Loading state */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #333;
+    border-top: 3px solid #e8b4e8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .anomaly-summary {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .summary-value {
+        font-size: 24px;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+    }
+
+    .filter-controls input,
+    .filter-controls select {
+        min-width: 100%;
+    }
+
+    .anomaly-table {
+        font-size: 12px;
+    }
+
+    .anomaly-table th,
+    .anomaly-table td {
+        padding: 8px;
+    }
+
+    .export-section {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+

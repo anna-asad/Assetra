@@ -189,7 +189,12 @@ async function assignAsset(req, res) {
     };
     
     const assignment = await db.createAssignment(assignmentData);
-    
+
+    // Update asset status to Allocated when assigned
+    if (asset.status === 'Available') {
+      await db.updateAssetStatus(assetId, 'Allocated');
+    }
+
     await db.logAction(
       req.user.userId,
       'ASSIGN_ASSET',

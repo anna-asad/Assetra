@@ -304,14 +304,30 @@ async function updateAssetById(assetId, updateData, userId) {
 async function deleteAssetById(assetId, userId) {
   try {
     const pool = await getConnection();
-    const result = await pool.request()
-      .input('asset_id', sql.Int, assetId)
-      .query('DELETE FROM assets WHERE asset_id = @asset_id');
+    const transaction = pool.transaction();
+    await transaction.begin();
     
-    if (result.rowsAffected[0] === 0) {
-      return { success: false, message: 'Asset not found' };
+    try {
+      // Delete related assignments first to avoid FK constraint
+      await transaction.request()
+        .input('asset_id', sql.Int, assetId)
+        .query('DELETE FROM asset_assignments WHERE asset_id = @asset_id');
+      
+      // Delete the asset
+      const result = await transaction.request()
+        .input('asset_id', sql.Int, assetId)
+        .query('DELETE FROM assets WHERE asset_id = @asset_id');
+      
+      await transaction.commit();
+      
+      if (result.rowsAffected[0] === 0) {
+        return { success: false, message: 'Asset not found' };
+      }
+      return { success: true, message: 'Asset deleted' };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
     }
-    return { success: true, message: 'Asset deleted' };
   } catch (error) {
     console.error('Delete error:', error);
     throw error;
@@ -1011,7 +1027,7 @@ async function createScheduledAudit(scheduleData) {
     const result = await pool.request()
       .input('schedule_name', sql.NVarChar, scheduleData.schedule_name)
       .input('frequency', sql.NVarChar, scheduleData.frequency)
-      .input('schedule_time', sql.Time, scheduleData.schedule_time)
+      .input('schedule_time', sql.NVarChar, scheduleData.schedule_time)
       .input('day_of_week', sql.Int, scheduleData.day_of_week || null)
       .input('day_of_month', sql.Int, scheduleData.day_of_month || null)
       .input('created_by', sql.Int, scheduleData.created_by)
@@ -1243,6 +1259,243 @@ async function updateScheduleNextRun(scheduleId, nextRunAt) {
   }
 }
 
+// ==================== ANOMALY DETECTION FUNCTIONS ====================
+
+async function getMissingAssets(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        asset_id,
+        asset_tag,
+        asset_name,
+        category,
+        department,
+        purchase_cost,
+        status,
+        updated_at,
+        DATEDIFF(DAY, updated_at, GETDATE()) as days_missing,
+        CASE 
+          WHEN DATEDIFF(DAY, updated_at, GETDATE()) > 90 THEN 'Critical'
+          WHEN DATEDIFF(DAY, updated_at, GETDATE()) > 30 THEN 'High'
+          ELSE 'Medium'
+        END as severity
+      FROM assets
+      WHERE status = 'Missing'
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY updated_at ASC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting missing assets:', error);
+    throw error;
+  }
+}
+
+async function getOverdueAssets(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        a.asset_id,
+        a.asset_tag,
+        a.asset_name,
+        a.category,
+        a.department,
+        a.purchase_cost,
+        a.status,
+        a.updated_at,
+        DATEDIFF(DAY, a.updated_at, GETDATE()) as days_allocated,
+        CASE 
+          WHEN DATEDIFF(DAY, a.updated_at, GETDATE()) > 90 THEN 'Critical'
+          WHEN DATEDIFF(DAY, a.updated_at, GETDATE()) > 60 THEN 'High'
+          WHEN DATEDIFF(DAY, a.updated_at, GETDATE()) > 30 THEN 'Medium'
+          ELSE 'Low'
+        END as severity,
+        aa.assigned_to_user_id,
+        u.full_name as assigned_to_name
+      FROM assets a
+      LEFT JOIN asset_assignments aa ON a.asset_id = aa.asset_id AND aa.is_active = 1
+      LEFT JOIN users u ON aa.assigned_to_user_id = u.user_id
+      WHERE a.status = 'Allocated' AND DATEDIFF(DAY, a.updated_at, GETDATE()) > 30
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND a.department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY a.updated_at ASC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting overdue assets:', error);
+    throw error;
+  }
+}
+
+async function getUnusedAssets(department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        a.asset_id,
+        a.asset_tag,
+        a.asset_name,
+        a.category,
+        a.department,
+        a.purchase_cost,
+        a.status,
+        a.created_at,
+        DATEDIFF(DAY, a.created_at, GETDATE()) as days_without_activity,
+        (SELECT COUNT(*) FROM audit_logs WHERE entity_id = a.asset_id AND entity_type = 'asset') as audit_count,
+        CASE 
+          WHEN DATEDIFF(DAY, a.created_at, GETDATE()) > 365 THEN 'Critical'
+          WHEN DATEDIFF(DAY, a.created_at, GETDATE()) > 180 THEN 'High'
+          WHEN DATEDIFF(DAY, a.created_at, GETDATE()) > 90 THEN 'Medium'
+          ELSE 'Low'
+        END as severity
+      FROM assets a
+      WHERE NOT EXISTS (
+        SELECT 1 FROM audit_logs al WHERE al.entity_id = a.asset_id AND al.entity_type = 'asset'
+      )
+    `;
+    
+    const request = pool.request();
+    if (department) {
+      query += ' AND a.department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY a.created_at ASC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting unused assets:', error);
+    throw error;
+  }
+}
+
+async function getSuspiciousPatterns(department = null) {
+  try {
+    const pool = await getConnection();
+    
+    // Check if too many assets are in maintenance (>20)
+    let query = `
+      SELECT COUNT(*) as maintenance_count, department
+      FROM assets
+      WHERE status = 'Maintenance'
+    `;
+    
+    const request = pool.request();
+    
+    if (department) {
+      query += ' AND department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' GROUP BY department';
+    
+    const result = await request.query(query);
+    const patterns = [];
+    
+    for (const row of result.recordset) {
+      if (row.maintenance_count > 20) {
+        patterns.push({
+          pattern_type: 'Too Many Assets in Maintenance',
+          department: row.department || 'All Departments',
+          count: row.maintenance_count,
+          threshold: 20,
+          severity: row.maintenance_count > 50 ? 'Critical' : row.maintenance_count > 30 ? 'High' : 'Medium',
+          recommendation: 'Review maintenance schedule and resource allocation'
+        });
+      }
+    }
+    
+    // Additional pattern: Check for high rate of missing assets
+    query = `
+      SELECT COUNT(*) as missing_count, department
+      FROM assets
+      WHERE status = 'Missing'
+      AND DATEDIFF(DAY, updated_at, GETDATE()) > 30
+    `;
+    
+    const request2 = pool.request();
+    if (department) {
+      query += ' AND department = @department';
+      request2.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' GROUP BY department';
+    
+    const missingResult = await request2.query(query);
+    
+    for (const row of missingResult.recordset) {
+      if (row.missing_count > 5) {
+        patterns.push({
+          pattern_type: 'High Number of Missing Assets',
+          department: row.department || 'All Departments',
+          count: row.missing_count,
+          threshold: 5,
+          severity: row.missing_count > 20 ? 'Critical' : row.missing_count > 10 ? 'High' : 'Medium',
+          recommendation: 'Investigate missing assets and review tracking procedures'
+        });
+      }
+    }
+    
+    return patterns;
+  } catch (error) {
+    console.error('Error getting suspicious patterns:', error);
+    throw error;
+  }
+}
+
+async function getAnomalies(department = null) {
+  try {
+    const [missingAssets, overdueAssets, unusedAssets, patterns] = await Promise.all([
+      getMissingAssets(department),
+      getOverdueAssets(department),
+      getUnusedAssets(department),
+      getSuspiciousPatterns(department)
+    ]);
+    
+    return {
+      timestamp: new Date(),
+      summary: {
+        missing_assets_count: missingAssets.length,
+        overdue_assets_count: overdueAssets.length,
+        unused_assets_count: unusedAssets.length,
+        suspicious_patterns_count: patterns.length,
+        total_anomalies: missingAssets.length + overdueAssets.length + unusedAssets.length + patterns.length
+      },
+      missing_assets: missingAssets,
+      overdue_assets: overdueAssets,
+      unused_assets: unusedAssets,
+      suspicious_patterns: patterns,
+      critical_count: [
+        ...missingAssets.filter(a => a.severity === 'Critical'),
+        ...overdueAssets.filter(a => a.severity === 'Critical'),
+        ...unusedAssets.filter(a => a.severity === 'Critical'),
+        ...patterns.filter(p => p.severity === 'Critical')
+      ].length
+    };
+  } catch (error) {
+    console.error('Error getting anomalies:', error);
+    throw error;
+  }
+}
+
 // ==================== EXPORTS ====================
 module.exports = {
   findUserByUsername,
@@ -1290,7 +1543,12 @@ module.exports = {
   getAuditExecutions,
   getAuditExecutionById,
   getAuditResults,
-  updateScheduleNextRun
+  updateScheduleNextRun,
+  getMissingAssets,
+  getOverdueAssets,
+  getUnusedAssets,
+  getSuspiciousPatterns,
+  getAnomalies
 };
 
 
