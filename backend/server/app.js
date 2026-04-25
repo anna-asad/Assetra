@@ -26,9 +26,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/audit-schedule', auditScheduleRoutes);
 app.use('/api/anomalies', anomalyRoutes);
 
-// Root route - redirect to login
+// Root route - redirect to about
 app.get('/', (req, res) => {
-  res.redirect('/views/login.html');
+  res.redirect('/views/about.html');
 });
 
 // Error handling middleware

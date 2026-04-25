@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { findUserByUsername, createUser, findUserByEmail } = require('../models/database');
+const { findUserByUsername, createUser, findUserByEmail, getAllUsersWithRoles, getUserCountsByRole, deleteUserById } = require('../models/database');
 
 async function login(req, res) {
   try {
@@ -163,8 +163,48 @@ async function signup(req, res) {
 }
 
 
+async function getAllUsers(req, res) {
+  try {
+    const users = await getAllUsersWithRoles();
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching users: ' + error.message });
+  }
+}
+
+async function getUserStats(req, res) {
+  try {
+    const counts = await getUserCountsByRole();
+    res.json({ success: true, counts });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching user stats: ' + error.message });
+  }
+}
+
+async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user.userId;
+    
+    if (parseInt(id) === currentUserId) {
+      return res.status(400).json({ success: false, message: 'Cannot delete yourself' });
+    }
+    
+    const result = await deleteUserById(id);
+    res.json(result);
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ success: false, message: 'Error deleting user: ' + error.message });
+  }
+}
+
 module.exports = {
   login,
   logout,
-  signup
+  signup,
+  getAllUsers,
+  getUserStats,
+  deleteUser
 };

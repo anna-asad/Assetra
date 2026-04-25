@@ -53,5 +53,109 @@ async function loadSystemStats() {
     }
 }
 
+// Load user role breakdown
+async function loadUserStats() {
+    try {
+        const response = await fetch('/api/auth/users/stats', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('adminCount').textContent = data.counts.Admin || 0;
+            document.getElementById('managerCount').textContent = data.counts.Manager || 0;
+            document.getElementById('viewerCount').textContent = data.counts.Viewer || 0;
+        }
+    } catch (error) {
+        console.error('Error loading user stats:', error);
+    }
+}
+
+// Load user management table
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/auth/users', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        const tbody = document.getElementById('usersTableBody');
+        
+        if (!data.success) {
+            tbody.innerHTML = '<tr><td colspan="8" class="loading-text">Failed to load users</td></tr>';
+            return;
+        }
+        
+        if (data.users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="loading-text">No users found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.users.map(u => {
+            const roleClass = u.role.toLowerCase();
+            const createdDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+            const isSelf = u.user_id === user.userId;
+            const deleteBtn = isSelf 
+                ? '<span style="color:#aaa;font-size:12px;">You</span>' 
+                : `<button class="delete-btn" onclick="deleteUser(${u.user_id}, '${u.username}')">Delete</button>`;
+            
+            return `
+                <tr>
+                    <td>${u.user_id}</td>
+                    <td>${u.username}</td>
+                    <td>${u.full_name || '-'}</td>
+                    <td>${u.email || '-'}</td>
+                    <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+                    <td>${u.department || '-'}</td>
+                    <td>${createdDate}</td>
+                    <td>${deleteBtn}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="loading-text">Error loading users</td></tr>';
+    }
+}
+
+// Delete user
+async function deleteUser(userId, username) {
+    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/auth/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('User deleted successfully');
+            loadUsers();
+            loadUserStats();
+            loadSystemStats();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to delete user'));
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user');
+    }
+}
+
 // Load stats on page load
-window.addEventListener('DOMContentLoaded', loadSystemStats);
+window.addEventListener('DOMContentLoaded', () => {
+    loadSystemStats();
+    loadUserStats();
+    loadUsers();
+});

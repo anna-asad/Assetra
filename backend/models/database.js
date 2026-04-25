@@ -456,6 +456,53 @@ async function getAllUsers() {
   }
 }
 
+async function getAllUsersWithRoles() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query('SELECT user_id, username, full_name, email, role, department, created_at FROM users WHERE is_active = 1 ORDER BY created_at DESC');
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting all users with roles:', error);
+    throw error;
+  }
+}
+
+async function getUserCountsByRole() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query(`
+        SELECT role, COUNT(*) as count 
+        FROM users 
+        WHERE is_active = 1 
+        GROUP BY role
+      `);
+    const counts = { Admin: 0, Manager: 0, Viewer: 0, total: 0 };
+    for (const row of result.recordset) {
+      counts[row.role] = row.count;
+      counts.total += row.count;
+    }
+    return counts;
+  } catch (error) {
+    console.error('Error getting user counts by role:', error);
+    throw error;
+  }
+}
+
+async function deleteUserById(userId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('user_id', sql.Int, userId)
+      .query('UPDATE users SET is_active = 0 WHERE user_id = @user_id');
+    return { success: result.rowsAffected[0] > 0, message: 'User deleted' };
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+}
+
 async function createAssignment(assignmentData) {
   try {
     const pool = await getConnection();
@@ -1514,6 +1561,9 @@ module.exports = {
   getTotalAssetsByDepartment,
   getAssetsByStatusAndDepartment,
   getTotalAssetValue,
+  getAllUsersWithRoles,
+  getUserCountsByRole,
+  deleteUserById,
   createAssignment,
   getActiveAssignment,
   getAssignmentHistory,

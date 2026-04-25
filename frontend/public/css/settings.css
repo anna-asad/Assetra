@@ -11,6 +11,80 @@
     gap: 20px;
 }
 
+.settings-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.users-table th,
+.users-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.users-table th {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: #e8b4e8;
+    font-weight: 600;
+}
+
+.users-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.users-table .role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+.role-badge.manager {
+    background-color: #4ecdc4;
+    color: #333;
+}
+
+.role-badge.viewer {
+    background-color: #ffe66d;
+    color: #333;
+}
+
+.delete-btn {
+    padding: 6px 12px;
+    background-color: #ff6b6b;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.delete-btn:hover {
+    background-color: #ff5252;
+}
+
+.loading-text {
+    text-align: center;
+    color: #aaa;
+    padding: 20px;
+}
+
 .settings-card {
     background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
     padding: 25px;
