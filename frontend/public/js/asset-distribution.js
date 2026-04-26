@@ -8,8 +8,7 @@ if (!token) {
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 document.getElementById('userName').textContent = user.fullName || user.username || 'User';
 
-let academicChart = null;
-let adminChart = null;
+let dapartments = null;
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -39,13 +38,20 @@ async function loadDistributionData() {
         const data = await response.json();
         
         if (data.success) {
-            const academicDepts = ['Computer Science', 'Electrical Engineering', 'Civil Engineering', 'Management Sciences', 'Sciences & Humanities IT Services'];
-            const academicData = data.distribution.filter(d => academicDepts.includes(d.department));
-            const adminData = data.distribution.filter(d => !academicDepts.includes(d.department));
-            
-            renderAcademicChart(academicData, data.distribution);
-            renderAdminChart(adminData, data.distribution);
-            document.getElementById('departmentInfo').textContent = 'All Departments - Admin View';
+            // Handle Manager role - show single department chart
+            if (user.role === 'Manager') {
+                if (data.distribution.length > 0) {
+                    renderSingleDeptChart(data.distribution[0]);
+                    document.getElementById('departmentInfo').textContent = `My Department: ${data.distribution[0].department}`;
+                } else {
+                    document.getElementById('error').textContent = 'No department data found for your account.';
+                    document.getElementById('error').style.display = 'block';
+                }
+            } else {
+                // Admin/Viewer - show all departments
+                renderDapartmentsChart(data.distribution);
+                document.getElementById('departmentInfo').textContent = 'All Departments - Admin View';
+            }
         } else {
             throw new Error(data.message || 'Failed to load data');
         }
@@ -58,64 +64,16 @@ async function loadDistributionData() {
     }
 }
 
-function renderAcademicChart(academicData, allDistribution) {
-    const ctx = document.getElementById('academicChart').getContext('2d');
-    
-    if (academicChart) {
-        academicChart.destroy();
-    }
-    
-    const labels = ['Available', 'Allocated', 'Maintenance', 'Missing'];
-    const departments = academicData.map(d => d.department);
-    
-    const datasets = labels.map(label => ({
-        label,
-        data: departments.map(dept => {
-            const deptData = allDistribution.find(d => d.department === dept);
-            return deptData ? deptData[label] || 0 : 0;
-        }),
-        backgroundColor: getStatusColor(label),
-        borderColor: getStatusColor(label),
-        borderWidth: 1,
-        barPercentage: 0.8,
-        categoryPercentage: 0.85
-    }));
-    
-    academicChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: departments, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: '🎓 Academic Departments',
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: { position: 'top' }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Number of Assets' }
-                },
-                x: { title: { display: true, text: 'Departments' } }
-            }
-        }
-    });
-}
+function renderDapartmentsChart(allDistribution) {
+    const ctx = document.getElementById('dapartments').getContext('2d');
 
-function renderAdminChart(adminData, allDistribution) {
-    const ctx = document.getElementById('adminChart').getContext('2d');
-    
-    if (adminChart) {
-        adminChart.destroy();
+    if (dapartments) {
+        dapartments.destroy();
     }
-    
+
     const labels = ['Available', 'Allocated', 'Maintenance', 'Missing'];
-    const departments = adminData.map(d => d.department);
-    
+    const departments = allDistribution.map(d => d.department);
+
     const datasets = labels.map(label => ({
         label,
         data: departments.map(dept => {
@@ -128,8 +86,8 @@ function renderAdminChart(adminData, allDistribution) {
         barPercentage: 0.8,
         categoryPercentage: 0.85
     }));
-    
-    adminChart = new Chart(ctx, {
+
+    dapartments = new Chart(ctx, {
         type: 'bar',
         data: { labels: departments, datasets },
         options: {
@@ -138,17 +96,24 @@ function renderAdminChart(adminData, allDistribution) {
             plugins: {
                 title: {
                     display: true,
-                    text: '🏢 Administrative Departments',
-                    font: { size: 18, weight: 'bold' }
+                    text: '📊 All Departments',
+                    font: { size: 24, weight: 'bold' }
                 },
-                legend: { position: 'top' }
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 16 } }
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Number of Assets' }
+                    title: { display: true, text: 'Number of Assets', font: { size: 16 } },
+                    ticks: { font: { size: 14 } }
                 },
-                x: { title: { display: true, text: 'Departments' } }
+                x: {
+                    title: { display: true, text: 'Departments', font: { size: 16 } },
+                    ticks: { font: { size: 14 } }
+                }
             }
         }
     });

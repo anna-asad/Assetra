@@ -93,9 +93,9 @@ function displayUsers(users) {
             <td>${user.department || '-'}</td>
             <td>${new Date(user.created_at).toLocaleDateString()}</td>
             <td>
-                <button class="action-btn edit" onclick="editUser(${user.user_id})" title="Edit">✏️</button>
-                <button class="action-btn reset" onclick="openResetPassword(${user.user_id})" title="Reset Password">🔑</button>
-                <button class="action-btn delete" onclick="deleteUser(${user.user_id})" title="Delete">🗑️</button>
+                <button class="action-btn edit" onclick="editUser(${user.user_id})" title="Edit">Edit</button>
+                <button class="action-btn reset" onclick="openResetPassword(${user.user_id})" title="Reset Password">Reset</button>
+                <button class="action-btn delete" onclick="deleteUser(${user.user_id})" title="Delete">Delete</button>
             </td>
         </tr>
     `).join('');
@@ -354,8 +354,8 @@ function displayDepartments(departments) {
             <td>${dept.department_id}</td>
             <td>${dept.department_name}</td>
             <td>
-                <button class="action-btn edit" onclick="editDepartment(${dept.department_id}, '${dept.department_name}')" title="Edit">✏️</button>
-                <button class="action-btn delete" onclick="deleteDepartment(${dept.department_id})" title="Delete">🗑️</button>
+                <button class="action-btn edit" onclick="editDepartment(${dept.department_id}, '${dept.department_name}')" title="Edit">Edit</button>
+                <button class="action-btn delete" onclick="deleteDepartment(${dept.department_id})" title="Delete">Delete</button>
             </td>
         </tr>
     `).join('');

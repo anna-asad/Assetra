@@ -21,6 +21,34 @@ let isEditing = !!editingAssetId;
 console.log('Editing Asset ID:', editingAssetId);
 console.log('Is Editing:', isEditing);
 
+// Load departments for the dropdown
+async function loadDepartments() {
+    try {
+        const response = await fetch('/api/auth/departments', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('department');
+        if (select) {
+            select.innerHTML = '<option value="">Select Department</option>';
+            
+            if (data.success && data.departments) {
+                data.departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.department_name;
+                    option.textContent = dept.department_name;
+                    select.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading departments:', error);
+    }
+}
+
 // Load asset data for editing
 async function loadAssetForEdit(assetId) {
     try {
@@ -126,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Setup form submission
     setupFormSubmission();
+    
+    // Load departments for dropdown
+    await loadDepartments();
     
     // Setup logout
     setupLogout();

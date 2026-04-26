@@ -2,7 +2,7 @@ require('dotenv').config();
 const app = require('./app');
 const { getConnection } = require('./config');
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 async function startServer() {
   try {
@@ -20,7 +20,7 @@ async function startServer() {
         console.error(`Port ${PORT} is already in use.`);
         console.error('Please either:');
         console.error(`  1. Stop the other process using port ${PORT}, or`);
-        console.error(`  2. Change the PORT in your .env file (e.g., PORT=3001)`);
+        console.error(`  2. Change the PORT in your .env file (e.g., PORT=3002)`);
       } else {
         console.error('Server error:', error);
       }

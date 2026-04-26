@@ -108,9 +108,9 @@ GO
 
 
 -- FIX: Add missing columns for health tracking and maintenance alerts (SQL Error 207)
-ALTER TABLE assets ADD COLUMN health_score INT DEFAULT 50;
-ALTER TABLE assets ADD COLUMN warranty_expiry_date DATE NULL;
-ALTER TABLE assets ADD COLUMN last_maintenance_date DATE NULL;
+ALTER TABLE assets ADD health_score INT DEFAULT 50;
+ALTER TABLE assets ADD warranty_expiry_date DATE NULL;
+ALTER TABLE assets ADD last_maintenance_date DATE NULL;
 
 -- Set default health score for existing assets
 UPDATE assets SET health_score = 50 WHERE health_score IS NULL;
