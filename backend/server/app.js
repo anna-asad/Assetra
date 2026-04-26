@@ -7,6 +7,7 @@ const assetRoutes = require('../routes/assets');
 const dashboardRoutes = require('../routes/dashboard');
 const auditScheduleRoutes = require('../routes/auditSchedule');
 const anomalyRoutes = require('../routes/anomalies');
+const reportRoutes = require('../routes/reports');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/audit-schedule', auditScheduleRoutes);
 app.use('/api/anomalies', anomalyRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Root route - redirect to about
 app.get('/', (req, res) => {

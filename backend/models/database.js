@@ -609,6 +609,108 @@ async function getAuditLogsByAsset(assetId) {
   }
 }
 
+// ==================== REPORT FUNCTIONS ====================
+async function getAssetsForReport(filters = {}) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        a.*,
+        u.full_name as created_by_name,
+        u.username as created_by_username
+      FROM assets a
+      LEFT JOIN users u ON a.created_by = u.user_id
+      WHERE 1=1
+    `;
+    
+    const request = pool.request();
+    
+    if (filters.department) {
+      query += ' AND a.department = @department';
+      request.input('department', sql.NVarChar, filters.department);
+    }
+    
+    if (filters.startDate) {
+      query += ' AND a.created_at >= @startDate';
+      request.input('startDate', sql.DateTime, filters.startDate);
+    }
+    
+    if (filters.endDate) {
+      query += ' AND a.created_at <= @endDate';
+      request.input('endDate', sql.DateTime, filters.endDate);
+    }
+    
+    query += ' ORDER BY a.created_at DESC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting assets for report:', error);
+    throw error;
+  }
+}
+
+async function getAssetsWithAuditTrail(filters = {}) {
+  try {
+    const pool = await getConnection();
+    
+    // Get assets
+    const assets = await getAssetsForReport(filters);
+    
+    // Get audit logs for each asset
+    const assetsWithAudit = await Promise.all(
+      assets.map(async (asset) => {
+        const auditLogs = await getAuditLogsByAsset(asset.asset_id);
+        return {
+          ...asset,
+          audit_logs: auditLogs
+        };
+      })
+    );
+    
+    return assetsWithAudit;
+  } catch (error) {
+    console.error('Error getting assets with audit trail:', error);
+    throw error;
+  }
+}
+
+async function getAuditTrailByDateRange(startDate, endDate, department = null) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT 
+        al.*,
+        u.full_name as user_name,
+        u.username,
+        a.asset_tag,
+        a.asset_name,
+        a.department
+      FROM audit_logs al
+      LEFT JOIN users u ON al.user_id = u.user_id
+      LEFT JOIN assets a ON al.entity_id = a.asset_id AND al.entity_type = 'asset'
+      WHERE al.timestamp >= @startDate AND al.timestamp <= @endDate
+    `;
+    
+    const request = pool.request()
+      .input('startDate', sql.DateTime, startDate)
+      .input('endDate', sql.DateTime, endDate);
+    
+    if (department) {
+      query += ' AND a.department = @department';
+      request.input('department', sql.NVarChar, department);
+    }
+    
+    query += ' ORDER BY al.timestamp DESC';
+    
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting audit trail by date range:', error);
+    throw error;
+  }
+}
+
 // ==================== DEPRECIATION & VALUATION FUNCTIONS ====================
 async function calculateAssetDepreciation(assetId) {
   try {
@@ -1598,7 +1700,10 @@ module.exports = {
   getOverdueAssets,
   getUnusedAssets,
   getSuspiciousPatterns,
-  getAnomalies
+  getAnomalies,
+  getAssetsForReport,
+  getAssetsWithAuditTrail,
+  getAuditTrailByDateRange
 };
 
 

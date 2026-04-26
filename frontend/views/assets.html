@@ -44,6 +44,35 @@
             </select>
         </div>
 
+        <!-- Report & Export Section -->
+        <div class="report-section">
+            <div class="report-filters">
+                <h3>Compliance Reporting</h3>
+                <div class="filter-group">
+                    <label for="reportDepartment">Department:</label>
+                    <select id="reportDepartment" class="filter-select">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="reportStartDate">Start Date:</label>
+                    <input type="date" id="reportStartDate" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <label for="reportEndDate">End Date:</label>
+                    <input type="date" id="reportEndDate" class="filter-input">
+                </div>
+                <div class="filter-group">
+                    <button class="btn-pdf" onclick="generatePDFReport()" title="Generate PDF report with audit trail">
+                        📄 Download PDF Report
+                    </button>
+                    <button class="btn-excel" onclick="generateExcelReport()" title="Generate Excel report with audit trail">
+                        📊 Download Excel Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="assets-container">
             <div id="loadingMessage" class="loading-message">Loading assets...</div>
             <div id="errorMessage" class="error-message"></div>

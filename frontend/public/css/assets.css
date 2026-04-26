@@ -435,3 +435,119 @@ tbody tr:hover {
     background-color: #868e96;
     color: #fff;
 }
+
+/* Report Section Styles */
+.report-section {
+    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.report-section h3 {
+    color: #e8b4e8;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    width: 100%;
+    display: block;
+}
+
+.report-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: left;
+    gap: 5px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: auto;
+    min-width: 200px;
+}
+
+.filter-group label {
+    color: #fff;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.filter-input {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    min-width: 130px;
+}
+
+.filter-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.btn-pdf,
+.btn-excel {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.btn-pdf {
+    background-color: #ff6b6b;
+    color: #fff;
+}
+
+.btn-pdf:hover {
+    background-color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.btn-excel {
+    background-color: #51cf66;
+    color: #fff;
+}
+
+.btn-excel:hover {
+    background-color: #40c057;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+}
+
+@media (max-width: 768px) {
+    .report-filters {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .filter-input {
+        width: 100%;
+    }
+
+    .btn-pdf,
+    .btn-excel {
+        width: 100%;
+    }
+}

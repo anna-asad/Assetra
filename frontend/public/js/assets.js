@@ -266,10 +266,14 @@ async function markMissing() {
     await updateStatus(selectedAssetId, 'Missing');
 }
 
-// Load assets on page load
-window.addEventListener('DOMContentLoaded', () => {
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Load assets initially
     loadAssets();
     loadUsers();
+    
+    // Initialize department filter for reports
+    initializeDepartmentFilter();
 });
 
 // Assignment functions
@@ -379,4 +383,114 @@ window.onclick = function(event) {
         closeAssignModal();
     }
 };
+
+// ==================== REPORT EXPORT FUNCTIONS ====================
+
+// Initialize department dropdown for report filters
+async function initializeDepartmentFilter() {
+    try {
+        const response = await fetch('/api/reports/departments', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.departments) {
+            const departmentSelect = document.getElementById('reportDepartment');
+            data.departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                departmentSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading departments:', error);
+    }
+}
+
+// Generate PDF Report
+async function generatePDFReport() {
+    const department = document.getElementById('reportDepartment').value || '';
+    const startDate = document.getElementById('reportStartDate').value || '';
+    const endDate = document.getElementById('reportEndDate').value || '';
+    
+    try {
+        // Build query parameters
+        let queryParams = new URLSearchParams();
+        if (department) queryParams.append('department', department);
+        if (startDate) queryParams.append('startDate', startDate);
+        if (endDate) queryParams.append('endDate', endDate);
+        
+        const url = `/api/reports/pdf?${queryParams.toString()}`;
+        
+        // Trigger download
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.message || 'Failed to generate PDF report');
+            return;
+        }
+        
+        // Download file
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `asset-report-${new Date().getTime()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+    } catch (error) {
+        console.error('Error generating PDF report:', error);
+        alert('Error generating PDF report. Please try again.');
+    }
+}
+
+// Generate Excel Report
+async function generateExcelReport() {
+    const department = document.getElementById('reportDepartment').value || '';
+    const startDate = document.getElementById('reportStartDate').value || '';
+    const endDate = document.getElementById('reportEndDate').value || '';
+    
+    try {
+        // Build query parameters
+        let queryParams = new URLSearchParams();
+        if (department) queryParams.append('department', department);
+        if (startDate) queryParams.append('startDate', startDate);
+        if (endDate) queryParams.append('endDate', endDate);
+        
+        const url = `/api/reports/excel?${queryParams.toString()}`;
+        
+        // Trigger download
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.message || 'Failed to generate Excel report');
+            return;
+        }
+        
+        // Download file
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `asset-report-${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        
+    } catch (error) {
+        console.error('Error generating Excel report:', error);
+        alert('Error generating Excel report. Please try again.');
+    }
+}
 
