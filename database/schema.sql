@@ -5,6 +5,14 @@ GO
 USE assetra_db;
 GO
 
+-- Departments Table
+CREATE TABLE departments (
+    department_id INT PRIMARY KEY IDENTITY(1,1),
+    department_name NVARCHAR(100) UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT GETDATE()
+);
+GO
+
 -- Users Table
 CREATE TABLE users (
     user_id INT PRIMARY KEY IDENTITY(1,1),
@@ -79,6 +87,22 @@ INSERT INTO users (username, password_hash, full_name, email, role, department)
 VALUES 
 ('admin', 'password123', 'System Administrator', 'admin@assetra.com', 'Admin', 'IT'),
 ('manager1', 'password123', 'John Manager', 'manager@assetra.com', 'Manager', 'Operations');
+GO
+
+-- Insert Departments
+INSERT INTO departments (department_name) VALUES
+('Computer Science'),
+('Electrical Engineering'),
+('Civil Engineering'),
+('Management Sciences'),
+('Sciences & Humanities IT Services'),
+('Registrar Office'),
+('Accounts & Finance'),
+('Library'),
+('Administration & HR'),
+('Estate Office'),
+('IT'),
+('Operations');
 GO
 
 

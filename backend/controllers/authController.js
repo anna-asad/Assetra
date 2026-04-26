@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { findUserByUsername, createUser, findUserByEmail, getAllUsersWithRoles, getUserCountsByRole, deleteUserById } = require('../models/database');
+const { findUserByUsername, createUser, findUserByEmail, getAllUsersWithRoles, getUserCountsByRole, deleteUserById, getUserById, updateUser, resetPassword, getAllDepartments, createDepartment, updateDepartment, deleteDepartment } = require('../models/database');
 
 async function login(req, res) {
   try {
@@ -200,11 +200,114 @@ async function deleteUser(req, res) {
   }
 }
 
+async function getUserByIdController(req, res) {
+  try {
+    const user = await getUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching user: ' + error.message });
+  }
+}
+
+async function updateUserController(req, res) {
+  try {
+    const { id } = req.params;
+    const { full_name, email, role, department } = req.body;
+    const updateData = {};
+    if (full_name) updateData.full_name = full_name;
+    if (email) updateData.email = email;
+    if (role) updateData.role = role;
+    if (department !== undefined) updateData.department = department;
+    
+    const user = await updateUser(id, updateData);
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ success: false, message: 'Error updating user: ' + error.message });
+  }
+}
+
+async function resetPasswordController(req, res) {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+    await resetPassword(id, newPassword);
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Error resetting password: ' + error.message });
+  }
+}
+
+async function getDepartments(req, res) {
+  try {
+    const departments = await getAllDepartments();
+    res.json({ success: true, departments });
+  } catch (error) {
+    console.error('Get departments error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching departments: ' + error.message });
+  }
+}
+
+async function createDepartmentController(req, res) {
+  try {
+    const { department_name } = req.body;
+    if (!department_name || department_name.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Department name is required' });
+    }
+    const department = await createDepartment(department_name.trim());
+    res.status(201).json({ success: true, department });
+  } catch (error) {
+    console.error('Create department error:', error);
+    res.status(500).json({ success: false, message: 'Error creating department: ' + error.message });
+  }
+}
+
+async function updateDepartmentController(req, res) {
+  try {
+    const { id } = req.params;
+    const { department_name } = req.body;
+    if (!department_name || department_name.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Department name is required' });
+    }
+    const department = await updateDepartment(id, department_name.trim());
+    res.json({ success: true, department });
+  } catch (error) {
+    console.error('Update department error:', error);
+    res.status(500).json({ success: false, message: 'Error updating department: ' + error.message });
+  }
+}
+
+async function deleteDepartmentController(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await deleteDepartment(id);
+    res.json(result);
+  } catch (error) {
+    console.error('Delete department error:', error);
+    res.status(500).json({ success: false, message: 'Error deleting department: ' + error.message });
+  }
+}
+
 module.exports = {
   login,
   logout,
   signup,
   getAllUsers,
   getUserStats,
-  deleteUser
+  deleteUser,
+  getUserById: getUserByIdController,
+  updateUser: updateUserController,
+  resetPassword: resetPasswordController,
+  getDepartments,
+  createDepartment: createDepartmentController,
+  updateDepartment: updateDepartmentController,
+  deleteDepartment: deleteDepartmentController
 };

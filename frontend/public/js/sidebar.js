@@ -46,6 +46,12 @@ function initSidebar() {
                     </a>
                 </li>
                 <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
+                    <a href="/views/user-management.html" class="${currentPage.includes('user-management') ? 'active' : ''}">
+                        <span class="menu-icon">👥</span>
+                        <span class="menu-text">User Management</span>
+                    </a>
+                </li>
+                <li data-role="Admin" style="display: ${user.role === 'Admin' ? 'block' : 'none'}">
                     <a href="/views/settings.html" class="${currentPage.includes('settings') ? 'active' : ''}">
                         <span class="menu-icon">⚙️</span>
                         <span class="menu-text">Settings</span>

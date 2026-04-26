@@ -1,5 +1,134 @@
 const { getConnection, sql } = require('../server/config');
 
+async function getUserById(userId) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('user_id', sql.Int, userId)
+      .query('SELECT user_id, username, full_name, email, role, department, is_active, created_at FROM users WHERE user_id = @user_id');
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    throw error;
+  }
+}
+
+async function updateUser(userId, updateData) {
+  try {
+    const pool = await getConnection();
+    const keys = Object.keys(updateData);
+    let setClause = keys.map(key => `${key} = @${key}`).join(', ');
+    
+    const request = pool.request()
+      .input('user_id', sql.Int, userId);
+    
+    keys.forEach(key => {
+      request.input(key, sql.NVarChar, updateData[key]);
+    });
+    
+    const result = await request.query(`
+      UPDATE users 
+      SET ${setClause}, updated_at = GETDATE()
+      OUTPUT INSERTED.*
+      WHERE user_id = @user_id
+    `);
+    
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+}
+
+async function resetPassword(userId, newPassword) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('user_id', sql.Int, userId)
+      .input('password_hash', sql.NVarChar, newPassword)
+      .query(`
+        UPDATE users 
+        SET password_hash = @password_hash, updated_at = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE user_id = @user_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    throw error;
+  }
+}
+
+// ==================== DEPARTMENT FUNCTIONS ====================
+async function getAllDepartments() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .query('SELECT * FROM departments ORDER BY department_name');
+    
+    // Fallback: if departments table is empty, derive from assets
+    if (result.recordset.length === 0) {
+      const fallback = await pool.request()
+        .query(`SELECT DISTINCT department AS department_name FROM assets WHERE department IS NOT NULL ORDER BY department`);
+      return fallback.recordset.map(row => ({ department_name: row.department_name }));
+    }
+    
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting departments:', error);
+    throw error;
+  }
+}
+
+async function createDepartment(departmentName) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('department_name', sql.NVarChar, departmentName)
+      .query(`
+        INSERT INTO departments (department_name)
+        OUTPUT INSERTED.*
+        VALUES (@department_name)
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error creating department:', error);
+    throw error;
+  }
+}
+
+async function updateDepartment(departmentId, departmentName) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('department_id', sql.Int, departmentId)
+      .input('department_name', sql.NVarChar, departmentName)
+      .query(`
+        UPDATE departments 
+        SET department_name = @department_name
+        OUTPUT INSERTED.*
+        WHERE department_id = @department_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error updating department:', error);
+    throw error;
+  }
+}
+
+async function deleteDepartment(departmentId) {
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input('department_id', sql.Int, departmentId)
+      .query('DELETE FROM departments WHERE department_id = @department_id');
+    return { success: true, message: 'Department deleted' };
+  } catch (error) {
+    console.error('Error deleting department:', error);
+    throw error;
+  }
+}
+
 // ==================== USER FUNCTIONS ====================
 async function findUserByUsername(username) {
   try {
@@ -1652,6 +1781,13 @@ module.exports = {
   createUser,
   getTotalUsers,
   getAllUsers,
+  getUserById,
+  updateUser,
+  resetPassword,
+  getAllDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
   createAsset,
   getAllAssets,
   getAssetById,
