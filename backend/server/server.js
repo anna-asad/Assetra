@@ -1,6 +1,7 @@
 require('dotenv').config();
 const app = require('./app');
 const { getConnection } = require('./config');
+const { ensureHealthColumns } = require('../models/database');
 
 const PORT = process.env.PORT || 3001;
 
@@ -9,6 +10,9 @@ async function startServer() {
     // Test database connection
     await getConnection();
     console.log('Database connected successfully');
+
+    // Ensure health tracking columns exist in assets table
+    await ensureHealthColumns();
 
     // Start server
     const server = app.listen(PORT, () => {

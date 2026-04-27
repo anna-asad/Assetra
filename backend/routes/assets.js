@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus, assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog, getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores, getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord } = require('../controllers/assetController');
+const { addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus, assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog, getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores, getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord, getDisposalRequests, requestAssetDisposal, approveDisposal } = require('../controllers/assetController');
 const authenticateToken = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
@@ -27,6 +27,18 @@ router.post('/health/update', roleCheck(['Admin']), updateHealthScores);
 
 // GET /api/assets/users - Get all users for assignment dropdown
 router.get('/users/list', getAllUsersForAssignment);
+
+// ==================== DISPOSAL ROUTES ====================
+// NOTE: These must be defined BEFORE the /:id catch-all route
+
+// GET /api/assets/disposal-requests - List all disposal requests
+router.get('/disposal-requests', getDisposalRequests);
+
+// POST /api/assets/disposal-approve - Approve or reject a disposal request
+router.post('/disposal-approve', roleCheck(['Admin', 'Manager']), approveDisposal);
+
+// POST /api/assets/:id/disposal-request - Request disposal for a specific asset
+router.post('/:id/disposal-request', roleCheck(['Admin', 'Manager']), requestAssetDisposal);
 
 // GET /api/assets/:id - Get single asset for editing
 router.get('/:id', getAssetById);

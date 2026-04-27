@@ -93,6 +93,94 @@ async function ensureDepartmentsTable() {
   }
 }
 
+async function ensureDisposalTables() {
+  try {
+    const pool = await getConnection();
+    await pool.request().query('SELECT TOP 1 1 FROM disposal_requests');
+  } catch (error) {
+    if (error.message && error.message.includes("Invalid object name 'disposal_requests'")) {
+      console.warn('Creating missing disposal workflow tables');
+      const pool = await getConnection();
+      await pool.request().query(`
+        CREATE TABLE disposal_requests (
+          request_id INT PRIMARY KEY IDENTITY(1,1),
+          asset_id INT NOT NULL,
+          requested_by INT NOT NULL,
+          reason NVARCHAR(500) NOT NULL,
+          suggested_method NVARCHAR(50) NOT NULL,
+          status NVARCHAR(20) DEFAULT 'Pending',
+          current_level INT DEFAULT 1,
+          disposal_date DATETIME,
+          responsible_person NVARCHAR(100),
+          created_at DATETIME DEFAULT GETDATE(),
+          updated_at DATETIME DEFAULT GETDATE(),
+          FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
+          FOREIGN KEY (requested_by) REFERENCES users(user_id)
+        )
+      `);
+      await pool.request().query(`
+        CREATE TABLE disposal_approvals (
+          approval_id INT PRIMARY KEY IDENTITY(1,1),
+          request_id INT NOT NULL,
+          approver_id INT NOT NULL,
+          level INT NOT NULL,
+          status NVARCHAR(20) NOT NULL,
+          comments NVARCHAR(500),
+          timestamp DATETIME DEFAULT GETDATE(),
+          FOREIGN KEY (request_id) REFERENCES disposal_requests(request_id),
+          FOREIGN KEY (approver_id) REFERENCES users(user_id)
+        )
+      `);
+      console.log('Disposal tables created successfully');
+    } else if (!error.message || !error.message.includes("Invalid object name")) {
+      throw error;
+    }
+  }
+}
+
+async function ensureHealthColumns() {
+  try {
+    const pool = await getConnection();
+    const requiredColumns = [
+      { name: 'health_score', type: 'INT', defaultValue: '50' },
+      { name: 'warranty_expiry_date', type: 'DATE', defaultValue: null },
+      { name: 'last_maintenance_date', type: 'DATE', defaultValue: null }
+    ];
+
+    for (const col of requiredColumns) {
+      try {
+        await pool.request().query(`SELECT TOP 1 ${col.name} FROM assets`);
+      } catch (colError) {
+        if (colError.message && colError.message.includes(`Invalid column name '${col.name}'`)) {
+          console.warn(`Adding missing column '${col.name}' to assets table`);
+          let alterSql = `ALTER TABLE assets ADD ${col.name} ${col.type}`;
+          if (col.defaultValue !== null) {
+            alterSql += ` DEFAULT ${col.defaultValue}`;
+          } else {
+            alterSql += ' NULL';
+          }
+          await pool.request().query(alterSql);
+          console.log(`Column '${col.name}' added successfully`);
+        } else {
+          throw colError;
+        }
+      }
+    }
+
+    // Ensure existing rows have a health_score
+    try {
+      await pool.request().query(`UPDATE assets SET health_score = 50 WHERE health_score IS NULL`);
+    } catch (e) {
+      console.warn('Could not set default health_score:', e.message);
+    }
+
+    console.log('Health columns verified successfully');
+  } catch (error) {
+    console.error('Error ensuring health columns:', error);
+    throw error;
+  }
+}
+
 async function getAllDepartments() {
   try {
     const pool = await getConnection();
@@ -275,12 +363,13 @@ async function createAsset(assetData) {
       .input('maintenance_cost', sql.Decimal(10,2), assetData.maintenance_cost || 0)
       .input('salvage_value', sql.Decimal(10,2), assetData.salvage_value || 0)
       .input('useful_life_years', sql.Int, assetData.useful_life_years || 5)
+      .input('warranty_expiry_date', sql.Date, assetData.warranty_expiry_date || null)
       .query(`
         INSERT INTO assets (asset_tag, asset_name, category, description, purchase_date, 
-                           purchase_cost, status, location, department, created_by, maintenance_cost, salvage_value, useful_life_years)
+                           purchase_cost, status, location, department, created_by, maintenance_cost, salvage_value, useful_life_years, warranty_expiry_date)
         OUTPUT INSERTED.*
         VALUES (@asset_tag, @asset_name, @category, @description, @purchase_date, 
-                @purchase_cost, @status, @location, @department, @created_by, @maintenance_cost, @salvage_value, @useful_life_years)
+                @purchase_cost, @status, @location, @department, @created_by, @maintenance_cost, @salvage_value, @useful_life_years, @warranty_expiry_date)
       `);
     
     return result.recordset[0];
@@ -346,21 +435,6 @@ WHERE a.asset_id = @asset_id
   }
 }
 
-async function deleteAssetById(assetId, userId) {
-  try {
-    const pool = await getConnection();
-    await pool.request()
-      .input('asset_id', sql.Int, assetId)
-      .query('DELETE FROM assets WHERE asset_id = @asset_id');
-    return { success: true, message: 'Asset deleted' };
-  } catch (error) {
-    console.error('Delete error:', error);
-    throw error;
-  }
-}
-
-
-
 async function updateAssetStatus(assetId, status) {
   try {
     const pool = await getConnection();
@@ -385,7 +459,7 @@ async function getTotalAssets() {
   try {
     const pool = await getConnection();
     const result = await pool.request()
-      .query('SELECT COUNT(*) as total FROM assets');
+      .query("SELECT COUNT(*) as total FROM assets WHERE status != 'Disposed'");
     
     return result.recordset[0].total;
   } catch (error) {
@@ -401,6 +475,7 @@ async function getAssetsByStatus() {
       .query(`
         SELECT status, COUNT(*) as count 
         FROM assets 
+        WHERE status != 'Disposed'
         GROUP BY status
       `);
     
@@ -416,7 +491,7 @@ async function getTotalAssetsByDepartment(department) {
     const pool = await getConnection();
     const result = await pool.request()
       .input('department', sql.NVarChar, department)
-      .query('SELECT COUNT(*) as total FROM assets WHERE department = @department');
+      .query(`SELECT COUNT(*) as total FROM assets WHERE department = @department AND status != 'Disposed'`);
     
     return result.recordset[0].total;
   } catch (error) {
@@ -434,6 +509,7 @@ async function getAssetsByStatusAndDepartment(department) {
         SELECT status, COUNT(*) as count 
         FROM assets 
         WHERE department = @department
+        WHERE status != 'Disposed'
         GROUP BY status
       `);
     
@@ -447,7 +523,7 @@ async function getAssetsByStatusAndDepartment(department) {
 async function getTotalAssetValue(department = null) {
   try {
     const pool = await getConnection();
-    let query = 'SELECT ISNULL(SUM(purchase_cost), 0) as total_value FROM assets';
+    let query = `SELECT ISNULL(SUM(purchase_cost), 0) as total_value FROM assets WHERE status != 'Disposed'`;
     
     const request = pool.request();
     
@@ -468,7 +544,8 @@ async function getTotalAssetValue(department = null) {
 async function updateAssetById(assetId, updateData, userId) {
   try {
     const pool = await getConnection();
-    const keys = Object.keys(updateData);
+    // Filter out asset_id and metadata keys that shouldn't be updated manually
+    const keys = Object.keys(updateData).filter(k => !['asset_id', 'created_at', 'created_by'].includes(k));
     let setClause = keys.map(key => `${key} = @${key}`).join(', ');
     
     const request = pool.request()
@@ -823,6 +900,81 @@ async function getAssetsByValue() {
   }
 }
 
+// ==================== ANOMALY DETECTION FUNCTIONS ====================
+
+async function getAnomalies(department = null) {
+  try {
+    const missing = await getMissingAssets(department);
+    const overdue = await getOverdueAssets(department);
+    const unused = await getUnusedAssets(department);
+    const patterns = await getSuspiciousPatterns(department);
+
+    const total = missing.length + overdue.length + unused.length + patterns.length;
+    const critical = missing.length + patterns.filter(p => p.severity === 'Critical').length;
+
+    return {
+      summary: {
+        total_anomalies: total,
+        missing_assets_count: missing.length,
+        overdue_assets_count: overdue.length,
+        unused_assets_count: unused.length,
+        suspicious_patterns_count: patterns.length
+      },
+      critical_count: critical,
+      missing_assets: missing,
+      overdue_assets: overdue,
+      unused_assets: unused,
+      suspicious_patterns: patterns
+    };
+  } catch (error) {
+    console.error('Error getting anomalies summary:', error);
+    throw error;
+  }
+}
+
+async function getMissingAssets(department = null) {
+  const pool = await getConnection();
+  let query = `SELECT *, DATEDIFF(day, updated_at, GETDATE()) as days_missing, 'Critical' as severity FROM assets WHERE status = 'Missing'`;
+  const request = pool.request();
+  if (department) { query += ' AND department = @department'; request.input('department', sql.NVarChar, department); }
+  const result = await request.query(query);
+  return result.recordset;
+}
+
+async function getOverdueAssets(department = null) {
+  const pool = await getConnection();
+  let query = `
+    SELECT a.*, u.full_name as assigned_to_name, DATEDIFF(day, aa.effective_date, GETDATE()) as days_allocated,
+    CASE WHEN DATEDIFF(day, aa.effective_date, GETDATE()) > 60 THEN 'Critical' ELSE 'Warning' END as severity
+    FROM assets a
+    JOIN asset_assignments aa ON a.asset_id = aa.asset_id AND aa.is_active = 1
+    LEFT JOIN users u ON aa.assigned_to_user_id = u.user_id
+    WHERE DATEDIFF(day, aa.effective_date, GETDATE()) > 30
+  `;
+  const request = pool.request();
+  if (department) { query += ' AND a.department = @department'; request.input('department', sql.NVarChar, department); }
+  const result = await request.query(query);
+  return result.recordset;
+}
+
+async function getUnusedAssets(department = null) {
+  const pool = await getConnection();
+  let query = `SELECT *, DATEDIFF(day, updated_at, GETDATE()) as days_without_activity, 'Warning' as severity FROM assets WHERE status = 'Available' AND DATEDIFF(day, updated_at, GETDATE()) > 90`;
+  const request = pool.request();
+  if (department) { query += ' AND department = @department'; request.input('department', sql.NVarChar, department); }
+  const result = await request.query(query);
+  return result.recordset;
+}
+
+async function getSuspiciousPatterns(department = null) {
+  const pool = await getConnection();
+  let query = `SELECT department, COUNT(*) as count, 'High Missing Rate' as pattern_type, '10%' as threshold, 'Critical' as severity, 'Perform physical audit' as recommendation FROM assets WHERE status = 'Missing' GROUP BY department HAVING COUNT(*) > 2`;
+  const request = pool.request();
+  if (department) { query += ' AND department = @department'; request.input('department', sql.NVarChar, department); }
+  const result = await request.query(query);
+  return result.recordset;
+}
+
 // ==================== HEALTH & MAINTENANCE FUNCTIONS ====================
 async function calculateHealthScore(assetId) {
   try {
@@ -1172,13 +1324,17 @@ async function getDepreciationSummary(department = null) {
     const result = await request.query(query);
     const row = result.recordset[0];
     
+    const totalCost = parseFloat(row.total_cost) || 0;
+    const totalAccDep = parseFloat(row.accumulated_depreciation) || 0;
+
     return {
       total_assets: parseInt(row.total_assets) || 0,
-      total_cost: parseFloat(row.total_cost) || 0,
-      total_salvage: parseFloat(row.total_salvage) || 0,
+      total_purchase_cost: totalCost,
+      total_salvage_value: parseFloat(row.total_salvage) || 0,
       annual_depreciation: parseFloat(row.annual_depreciation) || 0,
-      accumulated_depreciation: parseFloat(row.accumulated_depreciation) || 0,
-      net_book_value: (parseFloat(row.total_cost) || 0) - (parseFloat(row.accumulated_depreciation) || 0)
+      total_accumulated_depreciation: totalAccDep,
+      total_current_value: totalCost - totalAccDep,
+      total_depreciation_percentage: totalCost > 0 ? Math.round((totalAccDep / totalCost) * 100) : 0
     };
   } catch (error) {
     console.error('Error getting depreciation summary:', error);
@@ -1565,6 +1721,136 @@ async function updateScheduleNextRun(scheduleId, nextRun) {
   }
 }
 
+// ==================== DISPOSAL WORKFLOW FUNCTIONS ====================
+
+async function getDisposalRequests(filters = {}) {
+  try {
+    await ensureDisposalTables();
+    const pool = await getConnection();
+    let query = `
+      SELECT dr.*, a.asset_tag, a.asset_name, u.full_name as requested_by_name
+      FROM disposal_requests dr
+      JOIN assets a ON dr.asset_id = a.asset_id
+      JOIN users u ON dr.requested_by = u.user_id
+      WHERE 1=1
+    `;
+    const request = pool.request();
+    if (filters.status) { query += ' AND dr.status = @status'; request.input('status', sql.NVarChar, filters.status); }
+    if (filters.department) { query += ' AND a.department = @department'; request.input('department', sql.NVarChar, filters.department); }
+    
+    query += ' ORDER BY dr.created_at DESC';
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting disposal requests:', error);
+    throw error;
+  }
+}
+
+async function createDisposalRequest(data) {
+  try {
+    await ensureDisposalTables();
+    const pool = await getConnection();
+    const transaction = pool.transaction();
+    await transaction.begin();
+
+    try {
+      const result = await transaction.request()
+        .input('asset_id', sql.Int, data.asset_id)
+        .input('requested_by', sql.Int, data.requested_by)
+        .input('reason', sql.NVarChar, data.reason)
+        .input('suggested_method', sql.NVarChar, data.suggested_method)
+        .query(`
+          INSERT INTO disposal_requests (asset_id, requested_by, reason, suggested_method, status)
+          OUTPUT INSERTED.*
+          VALUES (@asset_id, @requested_by, @reason, @suggested_method, 'Pending')
+        `);
+      
+      // Update asset status to indicate disposal is in progress
+      await transaction.request()
+        .input('asset_id', sql.Int, data.asset_id)
+        .query("UPDATE assets SET status = 'Pending Disposal' WHERE asset_id = @asset_id");
+        
+      await transaction.commit();
+      return result.recordset[0];
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+      
+  } catch (error) {
+    console.error('Error creating disposal request:', error);
+    throw error;
+  }
+}
+
+async function addDisposalApproval(data) {
+  try {
+    await ensureDisposalTables();
+    const pool = await getConnection();
+    const transaction = pool.transaction();
+    await transaction.begin();
+    
+    try {
+      await transaction.request()
+        .input('request_id', sql.Int, data.request_id)
+        .input('approver_id', sql.Int, data.approver_id)
+        .input('level', sql.Int, data.level)
+        .input('status', sql.NVarChar, data.status)
+        .input('comments', sql.NVarChar, data.comments)
+        .query(`
+          INSERT INTO disposal_approvals (request_id, approver_id, level, status, comments)
+          VALUES (@request_id, @approver_id, @level, @status, @comments)
+        `);
+
+      let nextStatus = data.status === 'Approved' ? (data.level === 1 ? 'Under Review' : 'Approved') : 'Rejected';
+      
+      await transaction.request()
+        .input('request_id', sql.Int, data.request_id)
+        .input('status', sql.NVarChar, nextStatus)
+        .input('level', sql.Int, data.level + 1)
+        .query(`
+          UPDATE disposal_requests 
+          SET status = @status, current_level = @level, updated_at = GETDATE() 
+          WHERE request_id = @request_id
+        `);
+
+      // If fully approved, mark asset as Disposed/Retired
+      if (nextStatus === 'Approved') {
+        const reqResult = await transaction.request()
+          .input('request_id', sql.Int, data.request_id)
+          .query("SELECT asset_id, suggested_method FROM disposal_requests WHERE request_id = @request_id");
+        
+        const assetId = reqResult.recordset[0].asset_id;
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query("UPDATE assets SET status = 'Disposed', updated_at = GETDATE() WHERE asset_id = @asset_id");
+      } 
+      
+      // If rejected at any level, release the asset from "Pending Disposal" status
+      else if (nextStatus === 'Rejected') {
+        const reqResult = await transaction.request()
+          .input('request_id', sql.Int, data.request_id)
+          .query("SELECT asset_id FROM disposal_requests WHERE request_id = @request_id");
+        
+        const assetId = reqResult.recordset[0].asset_id;
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query("UPDATE assets SET status = 'Available', updated_at = GETDATE() WHERE asset_id = @asset_id");
+      }
+
+      await transaction.commit();
+      return { success: true };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  } catch (error) {
+    console.error('Error processing disposal approval:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   // User functions
   getUserById,
@@ -1641,5 +1927,20 @@ module.exports = {
   getAuditExecutions,
   getAuditExecutionById,
   getAuditResults,
-  updateScheduleNextRun
+  updateScheduleNextRun,
+  
+  // Anomaly
+  getAnomalies,
+  getMissingAssets,
+  getOverdueAssets,
+  getUnusedAssets,
+  getSuspiciousPatterns,
+  
+  // Disposal
+  getDisposalRequests,
+  createDisposalRequest,
+  addDisposalApproval,
+  
+  // Health columns
+  ensureHealthColumns
 };

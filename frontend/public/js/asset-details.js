@@ -29,10 +29,10 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // Get asset ID from URL
 const urlParams = new URLSearchParams(window.location.search);
-const assetId = urlParams.get('id');
+const assetId = parseInt(urlParams.get('id'));
 
-if (!assetId) {
-    alert('No asset selected');
+if (!assetId || isNaN(assetId)) {
+    alert('Invalid or missing asset ID');
     window.location.href = '/views/assets.html';
 }
 

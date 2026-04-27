@@ -1,19 +1,10 @@
-# TODO - Fix Audit Scheduling
+# TODO - Fix Missing Database Columns & Maintenance Alerts / Audit Scheduling
 
-## Status: COMPLETE
-
-1. [x] Fix syntax error in `backend/controllers/auditScheduleController.js` (missing closing brace and response in `runAudit`).
-2. [x] Add missing database functions to `backend/models/database.js`:
-   - `createScheduledAudit`
-   - `getAllScheduledAudits`
-   - `updateScheduledAudit`
-   - `deleteScheduledAudit`
-   - `executeAudit`
-   - `getAuditExecutions`
-   - `getAuditExecutionById`
-   - `getAuditResults`
-   - `updateScheduleNextRun`
-3. [x] Update `module.exports` in `database.js` to include all new functions.
-4. [x] Verified module loads and syntax is valid.
-
+## Plan
+1. [x] Add `ensureHealthColumns()` to `backend/models/database.js`
+2. [x] Update `createAsset()` in `backend/models/database.js` to include `warranty_expiry_date`
+3. [x] Export `ensureHealthColumns` from `backend/models/database.js`
+4. [x] Call `ensureHealthColumns()` in `backend/server/server.js` at startup
+5. [x] Fix `DROP TABLE departments` placement in `database/schema.sql`
+6. [ ] Restart server and test
 

@@ -68,7 +68,11 @@ async function getAssets(req, res) {
 
 async function getAssetById(req, res) {
   try {
-    const assetId = req.params.id;
+    const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const userDepartment = req.user.department;
     let deptFilter = userDepartment;
     if (req.user.role === 'Admin' || req.user.role === 'Viewer') {
@@ -84,9 +88,19 @@ async function getAssetById(req, res) {
 
 async function updateAsset(req, res) {
   try {
-    const assetId = req.params.id;
+    const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const oldAsset = await db.getAssetById(assetId);
-    
+    if (!oldAsset) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+
+    // Remove asset_id from body if present to prevent primary key update attempts
+    delete req.body.asset_id;
+
     const updated = await db.updateAssetById(assetId, req.body, req.user.userId);
     
     // Log asset update with changes
@@ -113,9 +127,16 @@ async function updateAsset(req, res) {
 
 async function deleteAsset(req, res) {
   try {
-    const assetId = req.params.id;
+    const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const asset = await db.getAssetById(assetId);
-    
+    if (!asset) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+
     const deleted = await db.deleteAssetById(assetId, req.user.userId);
     
     // Log asset deletion
@@ -135,8 +156,16 @@ async function deleteAsset(req, res) {
 
 async function changeAssetStatus(req, res) {
   try {
-    const assetId = req.params.id;
+    const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const asset = await db.getAssetById(assetId);
+    if (!asset) {
+      return res.status(404).json({ success: false, message: 'Asset not found' });
+    }
+
     const oldStatus = asset.status;
     const newStatus = req.body.status;
     
@@ -160,6 +189,10 @@ async function changeAssetStatus(req, res) {
 async function assignAsset(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const { assigned_to_user_id, assigned_to_department, effective_date } = req.body;
     
     if (!effective_date) {
@@ -173,11 +206,6 @@ async function assignAsset(req, res) {
     const asset = await db.getAssetById(assetId);
     if (!asset) {
       return res.status(404).json({ success: false, message: 'Asset not found' });
-    }
-    
-    if (assigned_to_user_id) {
-      const user = await db.findUserByUsername(''); // Will check if user exists
-      // Simple check - if user_id provided, assume it exists
     }
     
     const assignmentData = {
@@ -213,6 +241,10 @@ async function assignAsset(req, res) {
 async function getAssetAssignment(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const assignment = await db.getActiveAssignment(assetId);
     res.json({ success: true, assignment });
   } catch (error) {
@@ -232,6 +264,10 @@ async function getAllUsersForAssignment(req, res) {
 async function getAssetAuditLog(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const auditLogs = await db.getAuditLogsByAsset(assetId);
     res.json({ success: true, logs: auditLogs });
   } catch (error) {
@@ -242,6 +278,10 @@ async function getAssetAuditLog(req, res) {
 async function getAssetDepreciation(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const depreciation = await db.calculateAssetDepreciation(assetId);
     
     if (!depreciation) {
@@ -278,6 +318,10 @@ async function getDepreciationReport(req, res) {
 async function getAssetHealth(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const health = await db.calculateHealthScore(assetId);
     
     if (!health) {
@@ -330,6 +374,10 @@ async function getHealthReport(req, res) {
 async function addMaintenanceRecord(req, res) {
   try {
     const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
     const { maintenance_date, maintenance_type, notes } = req.body;
     
     if (!maintenance_date || !maintenance_type) {
@@ -360,9 +408,75 @@ async function addMaintenanceRecord(req, res) {
   }
 }
 
+async function getDisposalRequests(req, res) {
+  try {
+    const filters = {};
+    if (req.user.role === 'Manager') {
+      filters.department = req.user.department;
+    }
+    if (req.query.status) {
+      filters.status = req.query.status;
+    }
+    const requests = await db.getDisposalRequests(filters);
+    res.json({ success: true, requests });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function requestAssetDisposal(req, res) {
+  try {
+    const assetId = parseInt(req.params.id);
+    if (isNaN(assetId)) {
+      return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
+    }
+
+    const { reason, suggested_method } = req.body;
+
+    const asset = await db.getAssetById(assetId);
+    if (!asset || asset.status === 'Disposed' || asset.status === 'Pending Disposal') {
+      return res.status(400).json({ success: false, message: 'Asset is not eligible for disposal' });
+    }
+
+    const request = await db.createDisposalRequest({
+      asset_id: assetId,
+      requested_by: req.user.userId,
+      reason,
+      suggested_method
+    });
+
+    await db.logAction(req.user.userId, 'DISPOSAL_REQUEST', 'asset', assetId, `Disposal requested: ${reason}`);
+
+    res.json({ success: true, message: 'Disposal request submitted', request });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function approveDisposal(req, res) {
+  try {
+    const { request_id, status, comments, level } = req.body;
+    
+    await db.addDisposalApproval({
+      request_id,
+      approver_id: req.user.userId,
+      level,
+      status,
+      comments
+    });
+
+    res.json({ success: true, message: `Disposal request ${status.toLowerCase()}` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus,
   assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog,
   getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores,
-  getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord
+  getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord,
+  requestAssetDisposal,
+  approveDisposal,
+  getDisposalRequests
 };

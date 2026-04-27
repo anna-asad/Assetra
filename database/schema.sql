@@ -1,9 +1,15 @@
 -- Create Database
-CREATE DATABASE assetra_db;
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'assetra_db')
+BEGIN
+    CREATE DATABASE assetra_db;
+END;
 GO
 
 USE assetra_db;
 GO
+
+IF OBJECT_ID('departments', 'U') IS NOT NULL DROP TABLE departments;
+IF OBJECT_ID('users', 'U') IS NOT NULL DROP TABLE users;
 
 -- Departments Table
 CREATE TABLE departments (
@@ -37,7 +43,7 @@ CREATE TABLE assets (
     description NVARCHAR(500),
     purchase_date DATE,
     purchase_cost DECIMAL(10, 2),
-    status NVARCHAR(20) NOT NULL CHECK (status IN ('Available', 'Allocated', 'Maintenance', 'Missing')),
+    status NVARCHAR(20) NOT NULL CHECK (status IN ('Available', 'Allocated', 'Maintenance', 'Missing', 'Pending Disposal', 'Disposed')),
     location NVARCHAR(100),
     department NVARCHAR(50),
     created_by INT NOT NULL,
@@ -183,6 +189,7 @@ SELECT department, status, COUNT(*) FROM assets GROUP BY department, status ORDE
 -- ==================== AUDIT SCHEDULING MODULE ====================
 
 -- Maintenance Records Table
+USE assetra_db;
 CREATE TABLE maintenance_records (
     record_id INT PRIMARY KEY IDENTITY(1,1),
     asset_id INT NOT NULL,
@@ -196,6 +203,7 @@ CREATE TABLE maintenance_records (
 );
 GO
 
+USE assetra_db;
 -- Scheduled Audits Table
 CREATE TABLE scheduled_audits (
     schedule_id INT PRIMARY KEY IDENTITY(1,1),
@@ -213,6 +221,7 @@ CREATE TABLE scheduled_audits (
 );
 GO
 
+USE assetra_db;
 -- Audit Executions Table
 CREATE TABLE audit_executions (
     execution_id INT PRIMARY KEY IDENTITY(1,1),
@@ -233,6 +242,7 @@ CREATE TABLE audit_executions (
 );
 GO
 
+USE assetra_db;
 -- Audit Results Table (detailed results per asset)
 CREATE TABLE audit_results (
     result_id INT PRIMARY KEY IDENTITY(1,1),
@@ -256,4 +266,40 @@ GO
 CREATE INDEX idx_scheduled_audits_active ON scheduled_audits(is_active, next_run_at);
 CREATE INDEX idx_audit_executions_date ON audit_executions(executed_at DESC);
 CREATE INDEX idx_audit_results_execution ON audit_results(execution_id);
+GO
+
+
+-- ==================== DISPOSAL WORKFLOW TABLES ====================
+
+USE assetra_db;
+CREATE TABLE disposal_requests (
+    request_id INT PRIMARY KEY IDENTITY(1,1),
+
+    asset_id INT NOT NULL,
+    requested_by INT NOT NULL,
+    reason NVARCHAR(500) NOT NULL,
+    suggested_method NVARCHAR(50) NOT NULL, -- Scrap, Sell, Recycle, Donation
+    status NVARCHAR(20) DEFAULT 'Pending', -- Pending, Under Review, Approved, Rejected
+    current_level INT DEFAULT 1, -- 1: Manager, 2: Finance/Admin
+    disposal_date DATETIME,
+    responsible_person NVARCHAR(100),
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
+    FOREIGN KEY (requested_by) REFERENCES users(user_id)
+);
+GO
+USE assetra_db;
+
+CREATE TABLE disposal_approvals (
+    approval_id INT PRIMARY KEY IDENTITY(1,1),
+    request_id INT NOT NULL,
+    approver_id INT NOT NULL,
+    level INT NOT NULL,
+    status NVARCHAR(20) NOT NULL,
+    comments NVARCHAR(500),
+    timestamp DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (request_id) REFERENCES disposal_requests(request_id),
+    FOREIGN KEY (approver_id) REFERENCES users(user_id)
+);
 GO

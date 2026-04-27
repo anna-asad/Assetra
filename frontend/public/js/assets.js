@@ -65,7 +65,7 @@ async function loadAssets(statusFilter = '') {
         
         if (data.success) {
             allAssets = data.assets;
-            displayAssets(allAssets);
+            await displayAssets(allAssets);
         } else {
             errorMessage.textContent = data.message || 'Failed to load assets';
             errorMessage.style.display = 'block';
@@ -92,13 +92,17 @@ async function displayAssets(assets) {
     
     noAssets.style.display = 'none';
     assetsTable.style.display = 'block';
-    tbody.innerHTML = ''; // Always clear first
     
     // Use Promise.all to wait for all API calls
     const assetDetails = await Promise.all(assets.map(async (asset) => {
         let assignedTo = 'Unassigned';
         let healthBadge = '<span class="health-badge health-unknown">N/A</span>';
         
+        // Guard: Prevent API calls if the asset_id is missing or invalid
+        if (!asset.asset_id || isNaN(parseInt(asset.asset_id))) {
+            return { asset, assignedTo, healthBadge, isChecked: '' };
+        }
+
         try {
             // Assignment
             const assignResponse = await fetch(`/api/assets/${asset.asset_id}/assignment`, {
@@ -121,22 +125,25 @@ async function displayAssets(assets) {
             const healthData = await healthResponse.json();
             if (healthData.success && healthData.health) {
                 const health = healthData.health;
-                const healthClass = health.health_status === 'Healthy' ? 'health-healthy' : 
-                                   health.health_status === 'Warning' ? 'health-warning' : 'health-critical';
-                healthBadge = `<span class="health-badge ${healthClass}">${health.health_score}</span>`;
+                const score = health.health_score;
+                const healthClass = score >= 70 ? 'health-healthy' : 
+                                   score >= 50 ? 'health-warning' : 'health-critical';
+                healthBadge = `<span class="health-badge ${healthClass}">${score}</span>`;
             }
         } catch (err) {
             console.error('Error fetching health:', err);
         }
         
-        return { asset, assignedTo, healthBadge };
+        // Compare using == to handle string/number differences, or use parsed values
+        const isChecked = selectedAssetId == asset.asset_id ? 'checked' : '';
+        return { asset, assignedTo, healthBadge, isChecked };
     }));
     
-    // Now render all rows synchronously
-    assetDetails.forEach(({ asset, assignedTo, healthBadge }) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="radio" name="selectedAsset" data-asset-id="${asset.asset_id}" ${selectedAssetId === asset.asset_id ? 'checked' : ''}></td>
+    let html = '';
+    assetDetails.forEach(({ asset, assignedTo, healthBadge, isChecked }) => {
+        html += `
+            <tr>
+                <td><input type="radio" name="selectedAsset" data-asset-id="${asset.asset_id}" ${isChecked}></td>
             <td>${asset.asset_tag}</td>
             <td>${asset.asset_name}</td>
             <td>${asset.category}</td>
@@ -145,14 +152,16 @@ async function displayAssets(assets) {
             <td>${asset.department || '-'}</td>
             <td>${asset.location || '-'}</td>
             <td>${assignedTo}</td>
+            </tr>
         `;
-        tbody.appendChild(row);
     });
     
+    tbody.innerHTML = html;
+
     // Add event listeners once
     tbody.querySelectorAll('input[name="selectedAsset"]').forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
-            selectedAssetId = e.target.dataset.assetId;
+            selectedAssetId = parseInt(e.target.dataset.assetId);
         });
     });
 }
@@ -165,6 +174,8 @@ document.getElementById('statusFilter').addEventListener('change', (e) => {
 // Search - client-side filter (clear tbody first, prevent duplicates)
 document.getElementById('searchInput').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
+    selectedAssetId = null; // Reset selection to prevent invalid ID format errors
+
     const filteredAssets = allAssets.filter(asset => 
         asset.asset_name.toLowerCase().includes(searchTerm) ||
         asset.asset_tag.toLowerCase().includes(searchTerm) ||
@@ -384,6 +395,53 @@ window.onclick = function(event) {
     }
 };
 
+// Disposal Workflow Functions
+function openDisposalModal() {
+    if (!selectedAssetId) {
+        alert('Please select an asset to request disposal');
+        return;
+    }
+    document.getElementById('disposalModal').style.display = 'block';
+}
+
+function closeDisposalModal() {
+    document.getElementById('disposalModal').style.display = 'none';
+    document.getElementById('disposalForm').reset();
+}
+
+document.getElementById('disposalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const disposalData = {
+        reason: document.getElementById('disposalReason').value,
+        suggested_method: document.getElementById('disposalMethod').value
+    };
+    
+    try {
+        const response = await fetch(`/api/assets/${selectedAssetId}/disposal-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(disposalData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Disposal request submitted for approval.');
+            closeDisposalModal();
+            loadAssets(document.getElementById('statusFilter').value);
+        } else {
+            alert(data.message || 'Failed to submit disposal request');
+        }
+    } catch (error) {
+        console.error('Error requesting disposal:', error);
+        alert('Connection error. Please try again.');
+    }
+});
+
 // ==================== REPORT EXPORT FUNCTIONS ====================
 
 // Initialize department dropdown for report filters
@@ -493,4 +551,3 @@ async function generateExcelReport() {
         alert('Error generating Excel report. Please try again.');
     }
 }
-

@@ -15,7 +15,13 @@ function closeErrorModal() {
 
 // Check if editing existing asset
 const urlParams = new URLSearchParams(window.location.search);
-const editingAssetId = localStorage.getItem('editingAssetId') || urlParams.get('edit') || urlParams.get('assetId');
+let editingAssetId = localStorage.getItem('editingAssetId') || urlParams.get('edit') || urlParams.get('assetId');
+
+// Ensure we don't treat string "null" or "undefined" as a valid ID
+if (editingAssetId === 'null' || editingAssetId === 'undefined' || editingAssetId === '') {
+    editingAssetId = null;
+}
+
 let isEditing = !!editingAssetId;
 
 console.log('Editing Asset ID:', editingAssetId);
