@@ -26,15 +26,23 @@
         }
 
         /* Enhanced Hero Visual */
+        .hero-illustration {
+            position: relative;
+            transform: scale(1.4); /* Made it 40% bigger */
+            margin-left: 40px;
+        }
+
         .illustration-floating-card {
             animation: float 3s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(250, 59, 218, 0.4) !important;
+            position: absolute;
         }
 
-        .card-1 { animation-delay: 0s; }
-        .card-2 { animation-delay: 0.5s; }
-        .card-3 { animation-delay: 1s; }
-        .card-4 { animation-delay: 1.5s; }
+        .illustration-floating-card.card-1 { top: -20px; right: -80px; animation-delay: 0s; } /* Compliance Ready */
+        .illustration-floating-card.card-2 { bottom: 20px; left: -100px; animation-delay: 0.5s; } /* Automated Audits */
+        .illustration-floating-card.card-3 { bottom: -40px; right: -40px; animation-delay: 1s; } /* Cloud Sync */
+        .illustration-floating-card.card-4 { top: 20px; left: -90px; animation-delay: 1.5s; } /* Live Tracking */
+        .illustration-floating-card.card-5 { top: 110px; right: -110px; animation-delay: 2s; } /* Secure */
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
@@ -64,6 +72,22 @@
         .feature-card, .step-card {
             border: 1px solid rgba(250, 59, 218, 0.1);
         }
+
+        /* Large Animated Logo Text */
+        .about-hero-logo {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin: 0 0 1rem 0;
+            color: #1a1a1a;
+            letter-spacing: 12px;
+            animation: logo-neon-flicker 3s ease-in-out infinite alternate;
+            display: block;
+        }
+
+        @keyframes logo-neon-flicker {
+            from { text-shadow: 0 0 2px #fff, 0 0 5px #fff, 0 0 10px #fa3bda; opacity: 0.9; transform: translateY(0); }
+            to { text-shadow: 0 0 5px #fff, 0 0 15px #fa3bda, 0 0 30px #fa3bda, 0 0 45px #fa3bda; opacity: 1; transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -84,6 +108,7 @@
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-text">
+                <h1 class="about-hero-logo">ASSETRA</h1>
                 <span class="badge">Smart Asset Management System</span>
                 <h1 class="hero-heading">Manage Smarter. Track Faster. Control Everything.</h1>
                 <p class="hero-subheading">Assetra transforms the way organizations manage assets with real-time tracking, streamlined workflows, and complete visibility.</p>
@@ -103,14 +128,30 @@
                                 <div class="chart-bar" style="height: 70%"></div>
                                 <div class="chart-bar" style="height: 55%"></div>
                                 <div class="chart-bar" style="height: 85%"></div>
+                                <div class="chart-bar" style="height: 60%"></div>
+                                <div class="chart-bar" style="height: 45%"></div>
+                                <div class="chart-bar" style="height: 75%"></div>
+                                <div class="chart-bar" style="height: 30%"></div>
                             </div>
                         </div>
                     </div>
                     <div class="illustration-floating-card card-1">
+                        <span class="card-icon">📜</span>
+                        <span class="card-text">Compliance Ready</span>
+                    </div>
+                    <div class="illustration-floating-card card-2">
+                        <span class="card-icon">⚙️</span>
+                        <span class="card-text">Automated Audits</span>
+                    </div>
+                    <div class="illustration-floating-card card-3">
+                        <span class="card-icon">☁️</span>
+                        <span class="card-text">Cloud Sync</span>
+                    </div>
+                    <div class="illustration-floating-card card-4">
                         <span class="card-icon">📊</span>
                         <span class="card-text">Live Tracking</span>
                     </div>
-                    <div class="illustration-floating-card card-2">
+                    <div class="illustration-floating-card card-5">
                         <span class="card-icon">🔒</span>
                         <span class="card-text">Secure</span>
                     </div>

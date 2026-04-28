@@ -13,6 +13,7 @@ async function getDashboardStats(req, res) {
       totalAssets = await getTotalAssets();
       assetsByStatus = await getAssetsByStatus();
       maintenanceCost = await getMaintenanceCost();
+      depreciation = await getDepreciation();
       auditedCount = await getAuditedCount();
       maintainedCount = await getMaintainedCount();
       complianceScore = await getComplianceScore();
@@ -21,6 +22,7 @@ async function getDashboardStats(req, res) {
       totalAssets = await getTotalAssetsByDepartment(userDepartment);
       assetsByStatus = await getAssetsByStatusAndDepartment(userDepartment);
       maintenanceCost = await getMaintenanceCost(userDepartment);
+      depreciation = await getDepreciation(userDepartment);
       auditedCount = await getAuditedCount(userDepartment);
       maintainedCount = await getMaintainedCount(userDepartment);
       complianceScore = await getComplianceScore(userDepartment);

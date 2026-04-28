@@ -228,6 +228,10 @@ async function loadDashboardStats() {
             
             // New metrics
             document.getElementById('maintenanceCost').textContent = formatPKRCurrency(stats.maintenanceCost || 0);
+            const depreciationEl = document.getElementById('depreciationValue');
+            if (depreciationEl) {
+                depreciationEl.textContent = formatPKRCurrency(stats.depreciation || 0);
+            }
             document.getElementById('complianceScore').textContent = (stats.complianceScore || 0).toFixed(1) + '%';
             document.getElementById('complianceArc').style.strokeDasharray = (stats.complianceScore || 0) + ' 100';
             document.getElementById('auditedCount').textContent = stats.auditedCount || 0;
@@ -279,8 +283,12 @@ function updateBarHeights(statusBreakdown) {
     ];
 
     bars.forEach((bar, index) => {
-        const percentage = (values[index] / maxValue) * 100;
-        bar.style.height = Math.max(percentage, 20) + '%';
+        // Reset height first to re-trigger animation if refreshed
+        bar.style.height = '0%';
+        setTimeout(() => {
+            const percentage = (values[index] / maxValue) * 100;
+            bar.style.height = Math.max(percentage, 20) + '%';
+        }, 100);
     });
 }
 

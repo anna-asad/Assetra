@@ -12,6 +12,48 @@
             position: relative;
             z-index: 100;
         }
+
+        /* Slight neon pink outlines for dashboard boxes */
+        .stat-card, .chart-card, .maintenance-card, .metric-card {
+            border: 1.5px solid rgba(250, 59, 218, 0.4);
+            box-shadow: 0 0 10px rgba(250, 59, 218, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover, .chart-card:hover, .maintenance-card:hover, .metric-card:hover {
+            border-color: #fa3bda !important;
+            box-shadow: 0 0 20px rgba(250, 59, 218, 0.5) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Bar Chart Enhancements */
+        .bar {
+            transition: height 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+            min-width: 45px;
+        }
+
+        /* Individual Neon Colors for Bars */
+        .bar:nth-child(1) { 
+            background: linear-gradient(to top, #f86bad, #ee4189); 
+            box-shadow: 0 0 15px rgba(223, 32, 143, 0.4); 
+        } /* Available */
+        
+        .bar:nth-child(2) { 
+            background: linear-gradient(to top, #816ad3, #7240fa); 
+            box-shadow: 0 0 15px rgba(156, 88, 212, 0.4); 
+        } /* Allocated */
+        
+        .bar:nth-child(3) { 
+            background: linear-gradient(to top, #b755f0, #b12fd8); 
+            box-shadow: 0 0 15px rgba(176, 105, 218, 0.4); 
+        } /* Maintenance */
+        
+        .bar:nth-child(4) { 
+            background: linear-gradient(to top, #fa3bda, #ff007f); 
+            box-shadow: 0 0 15px rgba(250, 59, 218, 0.4); 
+        } /* Missing */
     </style>
 </head>
 <body>
@@ -74,9 +116,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="maintenance-card">
-                    <h3>Maintenance Cost</h3>
-                    <div class="metric-number-large" id="maintenanceCost">₨0</div>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <div class="maintenance-card" style="flex: 1; margin-top: 0;">
+                        <h3>Maintenance Cost</h3>
+                        <div class="metric-number-large" id="maintenanceCost" style="font-size: 1.6rem;">₨0</div>
+                    </div>
+                    <div class="maintenance-card" style="flex: 1; margin-top: 0;">
+                        <h3>Depreciation Value</h3>
+                        <div class="metric-number-large" id="depreciationValue" style="font-size: 1.6rem;">₨0</div>
+                    </div>
                 </div>
             </div>
             <div class="right-column">
