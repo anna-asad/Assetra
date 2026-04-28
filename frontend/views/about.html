@@ -5,8 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - About</title>
     <link rel="stylesheet" href="/css/about.css">
+    <style>
+        .header {
+            border-bottom: 4px solid #fa3bda;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+            position: relative;
+            z-index: 100;
+        }
+
+        /* Button and Card Glow Effects */
+        .btn, .feature-card, .step-card, .illustration-floating-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(250, 59, 218, 0.2);
+        }
+
+        .btn:hover, .feature-card:hover, .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(250, 59, 218, 0.6);
+            border-color: #fa3bda !important;
+        }
+
+        /* Enhanced Hero Visual */
+        .illustration-floating-card {
+            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(250, 59, 218, 0.4) !important;
+        }
+
+        .card-1 { animation-delay: 0s; }
+        .card-2 { animation-delay: 0.5s; }
+        .card-3 { animation-delay: 1s; }
+        .card-4 { animation-delay: 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Custom Cursor Glow */
+        #cursor-glow {
+            width: 25px;
+            height: 25px;
+            background: #fa3bda;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            box-shadow: 0 0 25px 10px rgba(250, 59, 218, 0.6);
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            display: none; /* Shown via JS */
+        }
+
+        body {
+            cursor: auto;
+        }
+
+        /* Feature & Step Card Borders */
+        .feature-card, .step-card {
+            border: 1px solid rgba(250, 59, 218, 0.1);
+        }
+    </style>
 </head>
 <body>
+    <div id="cursor-glow"></div>
     <header class="header">
         <div class="header-left">
             <h1 class="logo">ASSETRA</h1>
@@ -151,5 +212,17 @@
             <a href="/views/signup.html">Sign Up</a>
         </div>
     </footer>
+
+    <script>
+        const glow = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.display = 'block';
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+        document.addEventListener('mouseleave', () => {
+            glow.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

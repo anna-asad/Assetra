@@ -6,6 +6,11 @@ if (!token) {
     window.location.href = '/views/login.html';
 }
 
+// Block Viewer role
+if (user.role === 'Viewer') {
+    window.location.href = '/views/dashboard.html';
+}
+
 // Display user name
 document.getElementById('userName').textContent = user.fullName || user.username || 'User';
 

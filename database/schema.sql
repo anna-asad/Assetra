@@ -278,8 +278,8 @@ CREATE TABLE disposal_requests (
     asset_id INT NOT NULL,
     requested_by INT NOT NULL,
     reason NVARCHAR(500) NOT NULL,
-    suggested_method NVARCHAR(50) NOT NULL, -- Scrap, Sell, Recycle, Donation
-    status NVARCHAR(20) DEFAULT 'Pending', -- Pending, Under Review, Approved, Rejected
+    suggested_method NVARCHAR(50) NOT NULL CHECK (suggested_method IN ('Scrap', 'Sell', 'Recycle', 'Donation', 'Missing')), -- Scrap, Sell, Recycle, Donation, Missing
+    status NVARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Under Review', 'Approved', 'Rejected')), -- Pending, Under Review, Approved, Rejected
     current_level INT DEFAULT 1, -- 1: Manager, 2: Finance/Admin
     disposal_date DATETIME,
     responsible_person NVARCHAR(100),
@@ -302,4 +302,15 @@ CREATE TABLE disposal_approvals (
     FOREIGN KEY (request_id) REFERENCES disposal_requests(request_id),
     FOREIGN KEY (approver_id) REFERENCES users(user_id)
 );
+GO
+
+-- Robustly update constraint to include 'Missing' method
+DECLARE @ConstraintName nvarchar(200);
+SELECT @ConstraintName = name FROM sys.check_constraints 
+WHERE parent_object_id = OBJECT_ID('disposal_requests') AND definition LIKE '%suggested_method%';
+
+IF @ConstraintName IS NOT NULL EXEC('ALTER TABLE disposal_requests DROP CONSTRAINT ' + @ConstraintName);
+
+ALTER TABLE disposal_requests ADD CONSTRAINT CK_suggested_method 
+CHECK (suggested_method IN ('Scrap', 'Sell', 'Recycle', 'Donation', 'Missing'));
 GO

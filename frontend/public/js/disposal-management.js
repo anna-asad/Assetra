@@ -5,6 +5,29 @@ if (!token) {
     window.location.href = '/views/login.html';
 }
 
+// Block Viewer role
+if (user.role === 'Viewer') {
+    window.location.href = '/views/dashboard.html';
+}
+
+// Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/views/login.html';
+    }
+});
+
 async function loadDisposalRequests() {
     const tbody = document.getElementById('disposalTableBody');
     
@@ -31,8 +54,12 @@ async function loadDisposalRequests() {
                     <td><span class="status-badge status-${(req.status || 'pending').toLowerCase()}">${req.status || 'Pending'}</span></td>
                     <td>
                         ${req.status === 'Pending' || req.status === 'Under Review' ? `
-                            <button class="action-btn" onclick="processApproval(${req.request_id}, 'Approved', ${req.current_level})">Approve</button>
-                            <button class="action-btn remove-btn" onclick="processApproval(${req.request_id}, 'Rejected', ${req.current_level})">Reject</button>
+                            ${(user.role === 'Admin' || (user.role === 'Manager' && req.current_level <= 2)) ? ` // Managers can approve up to level 2
+                                <button class="action-btn" onclick="processApproval(${req.request_id}, 'Approved', ${req.current_level}, '${req.requested_by_role}')">Approve</button>
+                                <button class="action-btn remove-btn" onclick="processApproval(${req.request_id}, 'Rejected', ${req.current_level}, '${req.requested_by_role}')">Reject</button>
+                            ` : `
+                                <span class="status-badge status-info">Awaiting Admin Approval</span>
+                            `}
                         ` : '-'}
                     </td>
                 </tr>
@@ -46,9 +73,14 @@ async function loadDisposalRequests() {
     }
 }
 
-async function processApproval(requestId, status, level) {
-    const comments = prompt(`Enter comments for ${status.toLowerCase()}:`);
-    if (comments === null) return;
+async function processApproval(requestId, status, currentLevel, requestedByRole) {
+    let comments = '';
+    // Remove comments prompt if Manager is approving a Viewer's Level 1 request
+    // This fulfills the "one click" and "remove comments" requirement for this specific scenario.
+    if (!(user.role === 'Manager' && currentLevel === 1 && requestedByRole === 'Viewer')) {
+        comments = prompt(`Enter comments for ${status.toLowerCase()}:`);
+        if (comments === null) return; // User cancelled
+    }
 
     try {
         const response = await fetch('/api/assets/disposal-approve', {
@@ -60,8 +92,7 @@ async function processApproval(requestId, status, level) {
             body: JSON.stringify({
                 request_id: requestId,
                 status,
-                comments,
-                level
+                comments // Send empty string if no prompt, or user input
             })
         });
         const data = await response.json();
@@ -76,5 +107,12 @@ async function processApproval(requestId, status, level) {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('userName').textContent = user.fullName || user.username || 'User';
+    
+    // Set initials for the profile circle
+    const name = user.fullName || user.username || 'User';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    const avatarEl = document.getElementById('avatarInitials');
+    if (avatarEl) avatarEl.textContent = initials;
+
     loadDisposalRequests();
 });

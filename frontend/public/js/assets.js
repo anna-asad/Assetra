@@ -31,8 +31,53 @@ let allAssets = [];
 let selectedAssetId = null;
 let allUsers = [];
 
+// Helper: show red access-denied popup
+function showAccessDenied(message) {
+    const existing = document.getElementById('accessDeniedPopup');
+    if (existing) existing.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'accessDeniedPopup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #dc3545;
+        color: #fff;
+        padding: 24px 32px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-family: sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        min-width: 280px;
+    `;
+    popup.innerHTML = `
+        <div style="font-size: 28px; margin-bottom: 8px;">🚫</div>
+        <div>ACCESS DENIED</div>
+        <div style="font-size: 13px; font-weight: normal; margin-top: 6px; opacity: 0.9;">${message}</div>
+    `;
+    document.body.appendChild(popup);
+
+    setTimeout(() => {
+        if (popup.parentNode) popup.remove();
+    }, 2500);
+}
+
+// Check if current user is Viewer
+function isViewer() {
+    return user.role === 'Viewer';
+}
+
 // Function to add a new asset - clears edit mode
 function addNewAsset() {
+    if (isViewer()) {
+        showAccessDenied('Viewers cannot add assets.');
+        return;
+    }
     localStorage.removeItem('editingAssetId');
     window.location.href = '/views/add-asset.html';
 }
@@ -223,6 +268,10 @@ function viewDetails() {
 }
 
 function editSelected() {
+    if (isViewer()) {
+        showAccessDenied('Viewers cannot edit assets.');
+        return;
+    }
     if (!selectedAssetId) {
         alert('Please select an asset to edit');
         return;
@@ -233,6 +282,10 @@ function editSelected() {
 }
 
 async function removeSelected() {
+    if (isViewer()) {
+        showAccessDenied('Viewers cannot remove assets.');
+        return;
+    }
     if (!selectedAssetId) {
         alert('Please select an asset to remove');
         return;
@@ -315,6 +368,10 @@ function populateUserDropdown() {
 }
 
 function assignSelected() {
+    if (isViewer()) {
+        showAccessDenied('Viewers cannot assign assets.');
+        return;
+    }
     if (!selectedAssetId) {
         alert('Please select an asset to assign');
         return;

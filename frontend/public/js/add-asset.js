@@ -6,6 +6,11 @@ if (!token) {
     window.location.href = '/views/login.html';
 }
 
+// Viewer cannot add/edit assets
+if (user.role === 'Viewer') {
+    window.location.href = '/views/assets.html';
+}
+
 // Global close function
 function closeErrorModal() {
   const errorMessage = document.getElementById('errorMessage');

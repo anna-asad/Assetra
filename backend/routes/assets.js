@@ -19,8 +19,8 @@ router.get('/depreciation/report', getDepreciationReport);
 // GET /api/assets/health/report - Get health report
 router.get('/health/report', getHealthReport);
 
-// GET /api/assets/health/alerts - Get maintenance alerts
-router.get('/health/alerts', getMaintenanceAlertsReport);
+// GET /api/assets/health/alerts - Get maintenance alerts (Admin and Manager only)
+router.get('/health/alerts', roleCheck(['Admin', 'Manager']), getMaintenanceAlertsReport);
 
 // POST /api/assets/health/update - Update all health scores
 router.post('/health/update', roleCheck(['Admin']), updateHealthScores);
@@ -37,8 +37,8 @@ router.get('/disposal-requests', getDisposalRequests);
 // POST /api/assets/disposal-approve - Approve or reject a disposal request
 router.post('/disposal-approve', roleCheck(['Admin', 'Manager']), approveDisposal);
 
-// POST /api/assets/:id/disposal-request - Request disposal for a specific asset
-router.post('/:id/disposal-request', roleCheck(['Admin', 'Manager']), requestAssetDisposal);
+// POST /api/assets/:id/disposal-request - Request disposal for a specific asset (all authenticated users)
+router.post('/:id/disposal-request', requestAssetDisposal);
 
 // GET /api/assets/:id - Get single asset for editing
 router.get('/:id', getAssetById);

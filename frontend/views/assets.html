@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - Assets</title>
     <link rel="stylesheet" href="/css/assets.css">
+    <style>
+        :root {
+            --neon-glow: rgba(255, 0, 127, 0.6);
+            --neon-cute: #ff007f;
+        }
+
+        .header {
+            border-bottom: 4px solid #fa3bda;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+            position: relative;
+            z-index: 100;
+        }
+
+        /* Hover Glow & Reflection Effect */
+        .add-btn, .action-btn, .disposal-btn, .btn-pdf, .btn-excel {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-btn:hover, .action-btn:hover, .disposal-btn:hover, .btn-pdf:hover, .btn-excel:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), 0 0 20px var(--neon-glow);
+            filter: brightness(1.1);
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -161,7 +187,7 @@
             <form id="disposalForm">
                 <div class="form-group">
                     <label>Reason for Disposal:</label>
-                    <textarea id="disposalReason" required placeholder="e.g., Damaged beyond repair, Obsolete technology"></textarea>
+                    <textarea id="disposalReason" rows="5" style="width: 100%; min-height: 100px; resize: vertical;" required placeholder="e.g., Damaged beyond repair, Obsolete technology"></textarea>
                 </div>
                 
                 <div class="form-group">

@@ -431,10 +431,12 @@ async function requestAssetDisposal(req, res) {
       return res.status(400).json({ success: false, message: 'Invalid asset ID format' });
     }
 
-    const { reason, suggested_method } = req.body;
+    const { reason, suggested_method } = req.body; // The level parameter is not passed from the frontend for requestAssetDisposal
+    const requesterRole = req.user.role;
+    const initialLevel = requesterRole === 'Manager' ? 2 : 1;
 
     const asset = await db.getAssetById(assetId);
-    if (!asset || asset.status === 'Disposed' || asset.status === 'Pending Disposal') {
+    if (!asset || asset.status === 'Disposed' || asset.status === 'Pending Disposal' || asset.status === 'Allocated') {
       return res.status(400).json({ success: false, message: 'Asset is not eligible for disposal' });
     }
 
@@ -442,7 +444,8 @@ async function requestAssetDisposal(req, res) {
       asset_id: assetId,
       requested_by: req.user.userId,
       reason,
-      suggested_method
+      suggested_method,
+      initial_level: initialLevel // Pass the initial level based on requester's role
     });
 
     await db.logAction(req.user.userId, 'DISPOSAL_REQUEST', 'asset', assetId, `Disposal requested: ${reason}`);
@@ -455,18 +458,76 @@ async function requestAssetDisposal(req, res) {
 
 async function approveDisposal(req, res) {
   try {
-    const { request_id, status, comments, level } = req.body;
-    
+    const { request_id, status, comments } = req.body; // 'level' from frontend is the current_level
+    const approverId = req.user.userId;
+    const approverRole = req.user.role;
+
+    const disposalRequest = await db.getDisposalRequestById(request_id);
+    if (!disposalRequest) {
+      return res.status(404).json({ success: false, message: 'Disposal request not found' });
+    }
+
+    const currentLevel = disposalRequest.current_level;
+    const requester = await db.getUserById(disposalRequest.requested_by);
+    const requesterRole = requester ? requester.role : 'Unknown';
+
+    let newRequestStatus = status;
+    let newRequestLevel = currentLevel;
+
+    // Authorization check
+    if (approverRole === 'Manager' && currentLevel === 3) {
+      return res.status(403).json({ success: false, message: 'Managers cannot approve requests at Level 3.' });
+    }
+
+    // Process approval/rejection
+    if (status === 'Approved') {
+      if (approverRole === 'Admin') {
+        // Admin can finalize at any level
+        newRequestStatus = 'Approved';
+        newRequestLevel = currentLevel; // Level doesn't change if Admin finalizes
+      } else if (approverRole === 'Manager') {
+        if (currentLevel === 1 && requesterRole === 'Viewer') { // Manager approves Viewer's Level 1 request, moves directly to Level 3 for Admin
+          newRequestStatus = 'Under Review';
+          newRequestLevel = 3; // One-click approval for Manager on Viewer's request, combining L1 and L2 manager approvals
+        } else if (currentLevel === 2) {
+          newRequestStatus = 'Under Review'; // Manager approves Level 2, moves to Level 3 for Admin
+          newRequestLevel = 3;
+        }
+        // If currentLevel is 3, it's caught by the authorization check above
+      }
+    } else if (status === 'Rejected') {
+      // Any authorized approver can reject at their current level
+      newRequestStatus = 'Rejected';
+      newRequestLevel = currentLevel;
+    }
+
+    // Record the approval action
     await db.addDisposalApproval({
       request_id,
-      approver_id: req.user.userId,
-      level,
+      approver_id: approverId,
+      level: currentLevel, // Record the level at which this approval action was taken
       status,
       comments
     });
 
-    res.json({ success: true, message: `Disposal request ${status.toLowerCase()}` });
+    // Update the main disposal request status and level
+    await db.updateDisposalRequestStatusAndLevel(request_id, newRequestStatus, newRequestLevel);
+
+    // Update asset status based on the final request status
+    if (newRequestStatus === 'Approved') {
+      await db.updateAssetStatus(disposalRequest.asset_id, 'Disposed');
+      await db.logAction(approverId, 'DISPOSAL_APPROVED', 'asset', disposalRequest.asset_id, `Disposal request ${request_id} approved by ${approverRole}`);
+    } else if (newRequestStatus === 'Rejected') {
+      // If rejected at any level, revert asset status from 'Pending Disposal'
+      await db.updateAssetStatus(disposalRequest.asset_id, 'Available');
+      await db.logAction(approverId, 'DISPOSAL_REJECTED', 'asset', disposalRequest.asset_id, `Disposal request ${request_id} rejected by ${approverRole}`);
+    } else if (newRequestStatus === 'Under Review') {
+      await db.logAction(approverId, 'DISPOSAL_FORWARDED', 'asset', disposalRequest.asset_id, `Disposal request ${request_id} forwarded to next level by ${approverRole}`);
+    }
+
+    res.json({ success: true, message: `Disposal request ${newRequestStatus.toLowerCase()}` });
   } catch (error) {
+    console.error('Error processing disposal approval:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 }

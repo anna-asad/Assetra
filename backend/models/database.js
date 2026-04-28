@@ -107,7 +107,7 @@ async function ensureDisposalTables() {
           asset_id INT NOT NULL,
           requested_by INT NOT NULL,
           reason NVARCHAR(500) NOT NULL,
-          suggested_method NVARCHAR(50) NOT NULL,
+          suggested_method NVARCHAR(50) NOT NULL CHECK (suggested_method IN ('Scrap', 'Sell', 'Recycle', 'Donation', 'Missing')),
           status NVARCHAR(20) DEFAULT 'Pending',
           current_level INT DEFAULT 1,
           disposal_date DATETIME,
@@ -251,29 +251,76 @@ async function deleteDepartment(departmentId) {
   try {
     await ensureDepartmentsTable();
     const pool = await getConnection();
+    const transaction = pool.transaction();
+    await transaction.begin();
     
-    // First get the department name
-    const deptResult = await pool.request()
-      .input('department_id', sql.Int, departmentId)
-      .query('SELECT department_name FROM departments WHERE department_id = @department_id');
-    
-    if (deptResult.recordset.length === 0) {
-      return { success: false, message: 'Department not found' };
+    try {
+      // First get the department name
+      const deptResult = await transaction.request()
+        .input('department_id', sql.Int, departmentId)
+        .query('SELECT department_name FROM departments WHERE department_id = @department_id');
+      
+      if (deptResult.recordset.length === 0) {
+        await transaction.rollback();
+        return { success: false, message: 'Department not found' };
+      }
+      
+      const departmentName = deptResult.recordset[0].department_name;
+      
+      // Get all asset IDs in this department
+      const assetsResult = await transaction.request()
+        .input('department', sql.NVarChar, departmentName)
+        .query('SELECT asset_id FROM assets WHERE department = @department');
+      
+      const assetIds = assetsResult.recordset.map(row => row.asset_id);
+      
+      // Delete related records for each asset
+      for (const assetId of assetIds) {
+        // Delete disposal approvals first (FK to disposal_requests)
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query(`
+            DELETE FROM disposal_approvals 
+            WHERE request_id IN (SELECT request_id FROM disposal_requests WHERE asset_id = @asset_id)
+          `);
+        
+        // Delete disposal requests
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query('DELETE FROM disposal_requests WHERE asset_id = @asset_id');
+        
+        // Delete asset assignments
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query('DELETE FROM asset_assignments WHERE asset_id = @asset_id');
+        
+        // Delete audit logs
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query("DELETE FROM audit_logs WHERE entity_type = 'asset' AND entity_id = @asset_id");
+        
+        // Delete maintenance records
+        await transaction.request()
+          .input('asset_id', sql.Int, assetId)
+          .query('DELETE FROM maintenance_records WHERE asset_id = @asset_id');
+      }
+      
+      // Delete all assets in this department
+      await transaction.request()
+        .input('department', sql.NVarChar, departmentName)
+        .query('DELETE FROM assets WHERE department = @department');
+      
+      // Delete the department
+      await transaction.request()
+        .input('department_id', sql.Int, departmentId)
+        .query('DELETE FROM departments WHERE department_id = @department_id');
+      
+      await transaction.commit();
+      return { success: true, message: 'Department and all its assets deleted' };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
     }
-    
-    const departmentName = deptResult.recordset[0].department_name;
-    
-    // Delete all assets in this department
-    await pool.request()
-      .input('department', sql.NVarChar, departmentName)
-      .query('DELETE FROM assets WHERE department = @department');
-    
-    // Delete the department
-    await pool.request()
-      .input('department_id', sql.Int, departmentId)
-      .query('DELETE FROM departments WHERE department_id = @department_id');
-    
-    return { success: true, message: 'Department and all its assets deleted' };
   } catch (error) {
     console.error('Error deleting department:', error);
     throw error;
@@ -508,8 +555,7 @@ async function getAssetsByStatusAndDepartment(department) {
       .query(`
         SELECT status, COUNT(*) as count 
         FROM assets 
-        WHERE department = @department
-        WHERE status != 'Disposed'
+        WHERE department = @department AND status != 'Disposed'
         GROUP BY status
       `);
     
@@ -528,7 +574,7 @@ async function getTotalAssetValue(department = null) {
     const request = pool.request();
     
     if (department) {
-      query += ' WHERE department = @department';
+      query += ' AND department = @department';
       request.input('department', sql.NVarChar, department);
     }
     
@@ -1727,8 +1773,8 @@ async function getDisposalRequests(filters = {}) {
   try {
     await ensureDisposalTables();
     const pool = await getConnection();
-    let query = `
-      SELECT dr.*, a.asset_tag, a.asset_name, u.full_name as requested_by_name
+    let query = ` 
+      SELECT dr.request_id, dr.asset_id, dr.requested_by, dr.reason, dr.suggested_method, dr.status, dr.current_level, dr.created_at, a.asset_tag, a.asset_name, u.full_name as requested_by_name, u.role as requested_by_role
       FROM disposal_requests dr
       JOIN assets a ON dr.asset_id = a.asset_id
       JOIN users u ON dr.requested_by = u.user_id
@@ -1747,6 +1793,23 @@ async function getDisposalRequests(filters = {}) {
   }
 }
 
+async function getDisposalRequestById(requestId) {
+  try {
+    await ensureDisposalTables();
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('request_id', sql.Int, requestId)
+      .query(`
+        SELECT dr.*, a.asset_tag, a.asset_name, u.full_name as requested_by_name, u.role as requested_by_role
+        FROM disposal_requests dr JOIN assets a ON dr.asset_id = a.asset_id JOIN users u ON dr.requested_by = u.user_id
+        WHERE dr.request_id = @request_id`);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error getting disposal request by ID:', error);
+    throw error;
+  }
+}
+
 async function createDisposalRequest(data) {
   try {
     await ensureDisposalTables();
@@ -1760,10 +1823,11 @@ async function createDisposalRequest(data) {
         .input('requested_by', sql.Int, data.requested_by)
         .input('reason', sql.NVarChar, data.reason)
         .input('suggested_method', sql.NVarChar, data.suggested_method)
+        .input('initial_level', sql.Int, data.initial_level || 1) // New parameter for initial level
         .query(`
-          INSERT INTO disposal_requests (asset_id, requested_by, reason, suggested_method, status)
+          INSERT INTO disposal_requests (asset_id, requested_by, reason, suggested_method, status, current_level)
           OUTPUT INSERTED.*
-          VALUES (@asset_id, @requested_by, @reason, @suggested_method, 'Pending')
+          VALUES (@asset_id, @requested_by, @reason, @suggested_method, 'Pending', @initial_level)
         `);
       
       // Update asset status to indicate disposal is in progress
@@ -1788,63 +1852,36 @@ async function addDisposalApproval(data) {
   try {
     await ensureDisposalTables();
     const pool = await getConnection();
-    const transaction = pool.transaction();
-    await transaction.begin();
-    
-    try {
-      await transaction.request()
-        .input('request_id', sql.Int, data.request_id)
-        .input('approver_id', sql.Int, data.approver_id)
-        .input('level', sql.Int, data.level)
-        .input('status', sql.NVarChar, data.status)
-        .input('comments', sql.NVarChar, data.comments)
-        .query(`
-          INSERT INTO disposal_approvals (request_id, approver_id, level, status, comments)
-          VALUES (@request_id, @approver_id, @level, @status, @comments)
-        `);
+    await pool.request()
+      .input('request_id', sql.Int, data.request_id)
+      .input('approver_id', sql.Int, data.approver_id)
+      .input('level', sql.Int, data.level)
+      .input('status', sql.NVarChar, data.status)
+      .input('comments', sql.NVarChar, data.comments)
+      .query(`
+        INSERT INTO disposal_approvals (request_id, approver_id, level, status, comments)
+        VALUES (@request_id, @approver_id, @level, @status, @comments)
+      `);
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding disposal approval:', error);
+    throw error;
+  }
+}
 
-      let nextStatus = data.status === 'Approved' ? (data.level === 1 ? 'Under Review' : 'Approved') : 'Rejected';
-      
-      await transaction.request()
-        .input('request_id', sql.Int, data.request_id)
-        .input('status', sql.NVarChar, nextStatus)
-        .input('level', sql.Int, data.level + 1)
-        .query(`
-          UPDATE disposal_requests 
-          SET status = @status, current_level = @level, updated_at = GETDATE() 
-          WHERE request_id = @request_id
-        `);
-
-      // If fully approved, mark asset as Disposed/Retired
-      if (nextStatus === 'Approved') {
-        const reqResult = await transaction.request()
-          .input('request_id', sql.Int, data.request_id)
-          .query("SELECT asset_id, suggested_method FROM disposal_requests WHERE request_id = @request_id");
-        
-        const assetId = reqResult.recordset[0].asset_id;
-        await transaction.request()
-          .input('asset_id', sql.Int, assetId)
-          .query("UPDATE assets SET status = 'Disposed', updated_at = GETDATE() WHERE asset_id = @asset_id");
-      } 
-      
-      // If rejected at any level, release the asset from "Pending Disposal" status
-      else if (nextStatus === 'Rejected') {
-        const reqResult = await transaction.request()
-          .input('request_id', sql.Int, data.request_id)
-          .query("SELECT asset_id FROM disposal_requests WHERE request_id = @request_id");
-        
-        const assetId = reqResult.recordset[0].asset_id;
-        await transaction.request()
-          .input('asset_id', sql.Int, assetId)
-          .query("UPDATE assets SET status = 'Available', updated_at = GETDATE() WHERE asset_id = @asset_id");
-      }
-
-      await transaction.commit();
-      return { success: true };
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
-    }
+async function updateDisposalRequestStatusAndLevel(requestId, newStatus, newLevel) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('request_id', sql.Int, requestId)
+      .input('status', sql.NVarChar, newStatus)
+      .input('current_level', sql.Int, newLevel)
+      .query(`
+        UPDATE disposal_requests
+        SET status = @status, current_level = @current_level, updated_at = GETDATE()
+        WHERE request_id = @request_id
+      `);
+    return result.rowsAffected[0] > 0;
   } catch (error) {
     console.error('Error processing disposal approval:', error);
     throw error;
@@ -1939,7 +1976,9 @@ module.exports = {
   // Disposal
   getDisposalRequests,
   createDisposalRequest,
+  getDisposalRequestById, // New function
   addDisposalApproval,
+  updateDisposalRequestStatusAndLevel, // New function
   
   // Health columns
   ensureHealthColumns

@@ -5,8 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - Login</title>
     <link rel="stylesheet" href="/css/login.css">
+    <style>
+        .header {
+            border-bottom: 4px solid #fa3bda;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+            position: relative;
+            z-index: 100;
+        }
+
+        /* Neon glow for login container */
+        .login-container {
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.6), 0 0 50px rgba(255, 105, 180, 0.2) !important;
+            border: 2px solid #FF69B4 !important;
+        }
+
+        /* Custom Cursor Glow */
+        #cursor-glow {
+            width: 25px;
+            height: 25px;
+            background: #FF69B4; /* Baby Pink Neon */
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            box-shadow: 0 0 25px 10px rgba(255, 105, 180, 0.6);
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            display: none; /* Shown via JS */
+        }
+
+        body {
+            cursor: auto; /* Ensure standard cursor */
+        }
+    </style>
 </head>
 <body>
+    <div id="cursor-glow"></div>
     <header class="header">
         <div class="header-content">
             <div class="menu-icon">☰</div>
@@ -59,5 +93,16 @@
     </main>
 
     <script src="/js/login.js"></script>
+    <script>
+        const glow = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.display = 'block';
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+        document.addEventListener('mouseleave', () => {
+            glow.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
