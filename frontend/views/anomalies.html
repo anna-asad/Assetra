@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - Anomaly Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/anomalies.css">
     <style>
@@ -18,7 +19,7 @@
 <body>
     <header class="header">
         <div class="header-left">
-            <div class="menu-icon menu-toggle">≡</div>
+            <div class="menu-toggle">☰</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
         <div class="header-right">
@@ -29,32 +30,38 @@
     </header>
 
     <main class="main-content">
-        <h2 class="page-title">Anomaly Detection Report</h2>
+        <h2 class="page-title"><i class="fas fa-magnifying-glass-chart"></i> Anomaly Detection Report</h2>
               
 
         
         <div class="anomaly-summary">
             <div class="summary-card">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #e8b4e8;"><i class="fas fa-chart-line"></i></div>
                 <div class="summary-value" id="totalAnomalies">0</div>
                 <div class="summary-label">Total Anomalies</div>
             </div>
             <div class="summary-card critical" id="criticalCard">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #ffffff;"><i class="fas fa-biohazard"></i></div>
                 <div class="summary-value" id="criticalCount">0</div>
                 <div class="summary-label">Critical Issues</div>
             </div>
             <div class="summary-card missing">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #ffffff;"><i class="fas fa-box-open"></i></div>
                 <div class="summary-value" id="missingCount">0</div>
                 <div class="summary-label">Missing Assets</div>
             </div>
             <div class="summary-card overdue">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #ffffff;"><i class="fas fa-hourglass-half"></i></div>
                 <div class="summary-value" id="overdueCount">0</div>
                 <div class="summary-label">Overdue Assets</div>
             </div>
             <div class="summary-card unused">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #ffffff;"><i class="fas fa-boxes-stacked"></i></div>
                 <div class="summary-value" id="unusedCount">0</div>
                 <div class="summary-label">Unused Assets</div>
             </div>
             <div class="summary-card pattern">
+                <div class="card-icon" style="font-size: 2rem; margin-bottom: 10px; color: #ffffff;"><i class="fas fa-fingerprint"></i></div>
                 <div class="summary-value" id="patternCount">0</div>
                 <div class="summary-label">Suspicious Patterns</div>
             </div>
@@ -62,7 +69,7 @@
 
         <!-- Suspicious Patterns Section -->
         <div class="anomaly-section" id="patternsSection" style="display: none;">
-            <h3 class="section-title">🚨 Suspicious Patterns</h3>
+            <h3 class="section-title"><i class="fas fa-shield-halved"></i> Suspicious Patterns</h3>
             <div class="anomaly-table-container">
                 <table class="anomaly-table">
                     <thead>
@@ -86,7 +93,7 @@
 
         <!-- Missing Assets Section -->
         <div class="anomaly-section" id="missingSection" style="display: none;">
-            <h3 class="section-title">❌ Missing Assets</h3>
+            <h3 class="section-title"><i class="fas fa-file-circle-xmark"></i> Missing Assets</h3>
             <div class="filter-controls">
                 <input type="search" id="missingSearch" placeholder="Search by asset name or tag...">
                 <select id="missingSeverityFilter">
@@ -120,7 +127,7 @@
 
         <!-- Overdue Assets Section -->
         <div class="anomaly-section" id="overdueSection" style="display: none;">
-            <h3 class="section-title">⏰ Overdue Assets (Not Returned)</h3>
+            <h3 class="section-title"><i class="fas fa-calendar-xmark"></i> Overdue Assets (Not Returned)</h3>
             <div class="filter-controls">
                 <input type="search" id="overdueSearch" placeholder="Search by asset name or tag...">
                 <select id="overdueSeverityFilter">
@@ -154,7 +161,7 @@
 
         <!-- Unused Assets Section -->
         <div class="anomaly-section" id="unusedSection" style="display: none;">
-            <h3 class="section-title">📦 Unused Assets (No Activity)</h3>
+            <h3 class="section-title"><i class="fas fa-box-archive"></i> Unused Assets (No Activity)</h3>
             <div class="filter-controls">
                 <input type="search" id="unusedSearch" placeholder="Search by asset name or tag...">
                 <select id="unusedSeverityFilter">

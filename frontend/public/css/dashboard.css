@@ -135,6 +135,16 @@ body {
     background: linear-gradient(135deg, #ab8bab 0%, #9b7b9b 100%);
 }
 
+/* Card Hover Effects */
+.stat-card:hover,
+.chart-card:hover,
+.maintenance-card:hover,
+.metric-card:hover {
+    border-color: #fa3bda !important;
+    box-shadow: 0 0 20px rgba(250, 59, 218, 0.5) !important;
+    transform: translateY(-2px);
+}
+
 .stat-number {
     font-size: 48px;
     font-weight: bold;

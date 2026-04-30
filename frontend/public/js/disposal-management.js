@@ -54,7 +54,7 @@ async function loadDisposalRequests() {
                     <td><span class="status-badge status-${(req.status || 'pending').toLowerCase()}">${req.status || 'Pending'}</span></td>
                     <td>
                         ${req.status === 'Pending' || req.status === 'Under Review' ? `
-                            ${(user.role === 'Admin' || (user.role === 'Manager' && req.current_level <= 2)) ? ` // Managers can approve up to level 2
+                            ${(user.role === 'Admin' || (user.role === 'Manager' && req.current_level <= 2)) ? `
                                 <button class="action-btn" onclick="processApproval(${req.request_id}, 'Approved', ${req.current_level}, '${req.requested_by_role}')">Approve</button>
                                 <button class="action-btn remove-btn" onclick="processApproval(${req.request_id}, 'Rejected', ${req.current_level}, '${req.requested_by_role}')">Reject</button>
                             ` : `
@@ -74,13 +74,8 @@ async function loadDisposalRequests() {
 }
 
 async function processApproval(requestId, status, currentLevel, requestedByRole) {
+    // Remove comments prompt for all statuses
     let comments = '';
-    // Remove comments prompt if Manager is approving a Viewer's Level 1 request
-    // This fulfills the "one click" and "remove comments" requirement for this specific scenario.
-    if (!(user.role === 'Manager' && currentLevel === 1 && requestedByRole === 'Viewer')) {
-        comments = prompt(`Enter comments for ${status.toLowerCase()}:`);
-        if (comments === null) return; // User cancelled
-    }
 
     try {
         const response = await fetch('/api/assets/disposal-approve', {
@@ -92,7 +87,7 @@ async function processApproval(requestId, status, currentLevel, requestedByRole)
             body: JSON.stringify({
                 request_id: requestId,
                 status,
-                comments // Send empty string if no prompt, or user input
+                comments // Send empty string for comments
             })
         });
         const data = await response.json();

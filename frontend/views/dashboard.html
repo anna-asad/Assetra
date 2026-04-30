@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <style>
         .header {
@@ -34,32 +35,31 @@
             min-width: 45px;
         }
 
-        /* Individual Neon Colors for Bars */
         .bar:nth-child(1) { 
             background: linear-gradient(to top, #f86bad, #ee4189); 
             box-shadow: 0 0 15px rgba(223, 32, 143, 0.4); 
-        } /* Available */
+        } 
         
         .bar:nth-child(2) { 
             background: linear-gradient(to top, #816ad3, #7240fa); 
             box-shadow: 0 0 15px rgba(156, 88, 212, 0.4); 
-        } /* Allocated */
+        } 
         
         .bar:nth-child(3) { 
             background: linear-gradient(to top, #b755f0, #b12fd8); 
             box-shadow: 0 0 15px rgba(176, 105, 218, 0.4); 
-        } /* Maintenance */
+        } 
         
         .bar:nth-child(4) { 
             background: linear-gradient(to top, #fa3bda, #ff007f); 
             box-shadow: 0 0 15px rgba(250, 59, 218, 0.4); 
-        } /* Missing */
+        } 
     </style>
 </head>
 <body>
     <header class="header">
             <div class="header-left">
-            <div class="menu-icon menu-toggle">≡</div>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
             <h1 class="logo">ASSETRA</h1>
         </div>
         <div class="header-right">
@@ -89,6 +89,10 @@
             <div class="stat-card clickable-card" id="maintenanceAssetsCard" style="cursor: pointer;" title="Click for maintenance list">
                 <div class="stat-number" id="maintenanceAssets">0</div>
                 <div class="stat-label">Assets under Maintenance</div>
+            </div>
+            <div class="stat-card clickable-card" onclick="window.location.href='/views/asset-requests.html'" style="cursor: pointer; border-color: #816ad3;">
+                <div class="stat-number"><i class="fas fa-file-signature"></i></div>
+                <div class="stat-label">Asset Requests</div>
             </div>
         </div>
 

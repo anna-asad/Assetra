@@ -127,6 +127,36 @@ body {
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Assets Section */
+.assets-section {
+    background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(232, 180, 232, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Card Hover Effects */
+.summary-section:hover,
+.assets-section:hover,
+.summary-card:hover {
+    border-color: #fa3bda !important;
+    box-shadow: 0 0 20px rgba(250, 59, 218, 0.5) !important;
+    transform: translateY(-2px);
 }
 
 .section-title {

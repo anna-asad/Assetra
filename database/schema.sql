@@ -314,3 +314,17 @@ IF @ConstraintName IS NOT NULL EXEC('ALTER TABLE disposal_requests DROP CONSTRAI
 ALTER TABLE disposal_requests ADD CONSTRAINT CK_suggested_method 
 CHECK (suggested_method IN ('Scrap', 'Sell', 'Recycle', 'Donation', 'Missing'));
 GO
+
+-- Asset Requests Table
+CREATE TABLE asset_requests (
+    request_id INT PRIMARY KEY IDENTITY(1,1),
+    asset_name NVARCHAR(100) NOT NULL,
+    category NVARCHAR(50) NOT NULL,
+    department NVARCHAR(50) NOT NULL,
+    requested_by INT NOT NULL,
+    status NVARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (requested_by) REFERENCES users(user_id)
+);
+GO

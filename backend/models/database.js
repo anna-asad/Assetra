@@ -138,6 +138,34 @@ async function ensureDisposalTables() {
   }
 }
 
+async function ensureAssetRequestsTable() {
+  try {
+    const pool = await getConnection();
+    await pool.request().query('SELECT TOP 1 1 FROM asset_requests');
+  } catch (error) {
+    if (error.message && error.message.includes("Invalid object name 'asset_requests'")) {
+      console.warn('Creating missing asset_requests table');
+      const pool = await getConnection();
+      await pool.request().query(`
+        CREATE TABLE asset_requests (
+            request_id INT PRIMARY KEY IDENTITY(1,1),
+            asset_name NVARCHAR(100) NOT NULL,
+            category NVARCHAR(50) NOT NULL,
+            department NVARCHAR(50) NOT NULL,
+            requested_by INT NOT NULL,
+            status NVARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Approved', 'Rejected')),
+            created_at DATETIME DEFAULT GETDATE(),
+            updated_at DATETIME DEFAULT GETDATE(),
+            FOREIGN KEY (requested_by) REFERENCES users(user_id)
+        )
+      `);
+      console.log('asset_requests table created successfully');
+    } else if (!error.message || !error.message.includes("Invalid object name")) {
+      throw error;
+    }
+  }
+}
+
 async function ensureHealthColumns() {
   try {
     const pool = await getConnection();
@@ -1928,6 +1956,74 @@ async function updateDisposalRequestStatusAndLevel(requestId, newStatus, newLeve
   }
 }
 
+// ==================== ASSET REQUEST FUNCTIONS ====================
+
+async function createAssetRequest(data) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('asset_name', sql.NVarChar, data.asset_name)
+      .input('category', sql.NVarChar, data.category)
+      .input('department', sql.NVarChar, data.department)
+      .input('requested_by', sql.Int, data.requested_by)
+      .query(`
+        INSERT INTO asset_requests (asset_name, category, department, requested_by)
+        OUTPUT INSERTED.*
+        VALUES (@asset_name, @category, @department, @requested_by)
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error creating asset request:', error);
+    throw error;
+  }
+}
+
+async function getAssetRequests(filters = {}) {
+  try {
+    const pool = await getConnection();
+    let query = `
+      SELECT ar.*, u.full_name as requested_by_name
+      FROM asset_requests ar
+      JOIN users u ON ar.requested_by = u.user_id
+      WHERE 1=1
+    `;
+    const request = pool.request();
+    if (filters.department) {
+      query += ' AND ar.department = @department';
+      request.input('department', sql.NVarChar, filters.department);
+    }
+    if (filters.status) {
+      query += ' AND ar.status = @status';
+      request.input('status', sql.NVarChar, filters.status);
+    }
+    query += ' ORDER BY ar.created_at DESC';
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error getting asset requests:', error);
+    throw error;
+  }
+}
+
+async function updateAssetRequestStatus(requestId, status) {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('request_id', sql.Int, requestId)
+      .input('status', sql.NVarChar, status)
+      .query(`
+        UPDATE asset_requests 
+        SET status = @status, updated_at = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE request_id = @request_id
+      `);
+    return result.recordset[0];
+  } catch (error) {
+    console.error('Error updating asset request status:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   // User functions
   getUserById,
@@ -2019,7 +2115,13 @@ module.exports = {
   getDisposalRequestById, // New function
   addDisposalApproval,
   updateDisposalRequestStatusAndLevel, // New function
-  
+
+  // Asset Request functions
+  createAssetRequest,
+  getAssetRequests,
+  updateAssetRequestStatus,
+  ensureAssetRequestsTable,
+
   // Health columns
   ensureHealthColumns
 };

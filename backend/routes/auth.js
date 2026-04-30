@@ -37,8 +37,8 @@ router.post('/users/:id/reset-password', authenticateToken, roleCheck(['Admin'])
 // DELETE /api/auth/users/:id - Admin only
 router.delete('/users/:id', authenticateToken, roleCheck(['Admin']), deleteUser);
 
-// Department routes - Admin only
-router.get('/departments', authenticateToken, roleCheck(['Admin']), getDepartments);
+// Department routes - All authenticated users can view, only Admin can modify
+router.get('/departments', authenticateToken, getDepartments);
 router.post('/departments', authenticateToken, roleCheck(['Admin']), createDepartment);
 router.patch('/departments/:id', authenticateToken, roleCheck(['Admin']), updateDepartment);
 router.delete('/departments/:id', authenticateToken, roleCheck(['Admin']), deleteDepartment);

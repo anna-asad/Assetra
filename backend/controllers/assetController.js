@@ -532,6 +532,81 @@ async function approveDisposal(req, res) {
   }
 }
 
+async function requestNewAsset(req, res) {
+  try {
+    const { asset_name, category, department } = req.body;
+    if (!asset_name || !category || !department) {
+      return res.status(400).json({ success: false, message: 'Name, category, and department are required' });
+    }
+
+    const request = await db.createAssetRequest({
+      asset_name,
+      category,
+      department,
+      requested_by: req.user.userId
+    });
+
+    await db.logAction(req.user.userId, 'ASSET_REQUEST_CREATED', 'asset_request', request.request_id, `Requested: ${asset_name}`);
+    res.json({ success: true, message: 'Asset request submitted successfully', request });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function getAssetRequests(req, res) {
+  try {
+    const filters = {};
+    if (req.user.role === 'Manager') {
+      filters.department = req.user.department;
+    }
+    const requests = await db.getAssetRequests(filters);
+    res.json({ success: true, requests });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+async function handleAssetRequestApproval(req, res) {
+  try {
+    const requestId = parseInt(req.params.id);
+    const { status } = req.body;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const requests = await db.getAssetRequests({ request_id: requestId });
+    const assetRequest = requests.find(r => r.request_id === requestId);
+
+    if (!assetRequest) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    // If approved, create the actual asset
+    if (status === 'Approved') {
+      const assetData = {
+        asset_tag: `REQ-${Date.now().toString().slice(-6)}`, // Generate temporary tag
+        asset_name: assetRequest.asset_name,
+        category: assetRequest.category,
+        department: assetRequest.department,
+        status: 'Available',
+        purchase_cost: 0, // Manager/Admin will need to edit this later
+        created_by: req.user.userId
+      };
+      
+      const newAsset = await db.createAsset(assetData);
+      await db.logAction(req.user.userId, 'ASSET_REQUEST_APPROVED', 'asset', newAsset.asset_id, `Approved request ${requestId}`);
+    } else {
+      await db.logAction(req.user.userId, 'ASSET_REQUEST_REJECTED', 'asset_request', requestId, `Rejected request ${requestId}`);
+    }
+
+    await db.updateAssetRequestStatus(requestId, status);
+    res.json({ success: true, message: `Request ${status.toLowerCase()} successfully` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus,
   assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog,
@@ -539,5 +614,8 @@ module.exports = {
   getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord,
   requestAssetDisposal,
   approveDisposal,
-  getDisposalRequests
+  getDisposalRequests,
+  requestNewAsset,
+  getAssetRequests,
+  handleAssetRequestApproval
 };

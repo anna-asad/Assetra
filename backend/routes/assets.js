@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus, assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog, getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores, getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord, getDisposalRequests, requestAssetDisposal, approveDisposal } = require('../controllers/assetController');
+const { addAsset, getAssets, getAssetById, updateAsset, deleteAsset, changeAssetStatus, assignAsset, getAssetAssignment, getAllUsersForAssignment, getAssetAuditLog, getAssetDepreciation, getDepreciationReport, getAssetHealth, updateHealthScores, getMaintenanceAlertsReport, getHealthReport, addMaintenanceRecord, getDisposalRequests, requestAssetDisposal, approveDisposal, requestNewAsset, getAssetRequests, handleAssetRequestApproval } = require('../controllers/assetController');
 const authenticateToken = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
@@ -33,6 +33,12 @@ router.get('/users/list', getAllUsersForAssignment);
 
 // GET /api/assets/disposal-requests - List all disposal requests
 router.get('/disposal-requests', getDisposalRequests);
+
+// ==================== ASSET REQUEST ROUTES ====================
+// Viewer can create, Admin/Manager can view and approve
+router.get('/asset-requests', getAssetRequests);
+router.post('/asset-requests', requestNewAsset);
+router.post('/asset-requests/:id/approve', roleCheck(['Admin', 'Manager']), handleAssetRequestApproval);
 
 // POST /api/assets/disposal-approve - Approve or reject a disposal request
 router.post('/disposal-approve', roleCheck(['Admin', 'Manager']), approveDisposal);

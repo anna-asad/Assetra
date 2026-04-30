@@ -42,14 +42,14 @@
             <div id="alertsContent" style="display: none;">
                 <div class="alert-summary">
                     <div class="summary-card critical">
-                        <div class="card-icon">🚨</div>
+                        <div class="card-icon"><i class="fas fa-triangle-exclamation"></i></div>
                         <div class="card-content">
                             <div class="card-label">Critical Alerts</div>
                             <div class="card-value" id="criticalCount">0</div>
                         </div>
                     </div>
                     <div class="summary-card warning">
-                        <div class="card-icon">⚠️</div>
+                        <div class="card-icon"><i class="fas fa-circle-exclamation"></i></div>
                         <div class="card-content">
                             <div class="card-label">Warning Alerts</div>
                             <div class="card-value" id="warningCount">0</div>
@@ -60,7 +60,7 @@
                 <div class="alerts-list">
                     <h3 class="section-title">Assets Requiring Attention</h3>
                     <div id="noAlerts" class="no-alerts" style="display: none;">
-                        <p>✅ No maintenance alerts! All assets are in good condition.</p>
+                        <p><i class="fas fa-circle-check" style="color: #51cf66;"></i> No maintenance alerts! All assets are in good condition.</p>
                     </div>
                     <div id="alertsTable" class="table-container" style="display: none;">
                         <table>

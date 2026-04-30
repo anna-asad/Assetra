@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assetra - Asset Requests</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="/css/assets.css">
+    <style>
+        .header { border-bottom: 4px solid #e8b4e8; box-shadow: 0 0 15px rgba(232, 180, 232, 0.5); }
+.request-form-card { background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%); padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid rgba(232, 180, 232, 0.3); box-shadow: 0 0 20px rgba(232, 180, 232, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; }
+
+.request-form-card:hover { border-color: #fa3bda !important; box-shadow: 0 0 20px rgba(250, 59, 218, 0.5) !important; transform: translateY(-2px); }
+        .request-form-card h3 { color: #e8b4e8; margin-bottom: 15px; }
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; min-width: 80px; text-align: center; }
+        .status-pending { background-color: #ffd43b; color: #333; border: 1px solid #ffc107; }
+        .status-approved { background-color: #51cf66; color: #fff; border: 1px solid #40c057; }
+        .status-rejected { background-color: #ff6b6b; color: #fff; border: 1px solid #fa5252; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+            <h1 class="logo">ASSETRA</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-name" id="userName">User</span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">Asset Procurement Requests</h2>
+        </div>
+
+        <!-- Request Form (Visible to all, mainly for Viewers) -->
+        <div class="request-form-card">
+            <h3>Submit New Request</h3>
+            <form id="assetRequestForm" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <label>Asset Name</label>
+                    <input type="text" id="reqName" required placeholder="e.g. MacBook Pro">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 150px;">
+                    <label>Category</label>
+                    <select id="reqCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Computing">Computing</option>
+                        <option value="Office Equipment">Office Equipment</option>
+                        <option value="Electrical Equipment">Electrical Equipment</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Vehicles">Vehicles</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <label>Department</label>
+                    <select id="reqDept" required>
+                        <option value="">Loading departments...</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-btn">Submit Request</button>
+            </form>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="assets-container">
+            <h3>Recent Requests</h3>
+            <div id="requestsTable" class="assets-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset Name</th>
+                            <th>Category</th>
+                            <th>Department</th>
+                            <th>Requested By</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr><td colspan="7" style="text-align:center">Loading requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/asset-requests.js"></script>
+</body>
+</html>

@@ -74,18 +74,41 @@ function renderDapartmentsChart(allDistribution) {
     const labels = ['Available', 'Allocated', 'Maintenance', 'Missing'];
     const departments = allDistribution.map(d => d.department);
 
-    const datasets = labels.map(label => ({
-        label,
-        data: departments.map(dept => {
-            const deptData = allDistribution.find(d => d.department === dept);
-            return deptData ? deptData[label] || 0 : 0;
-        }),
-        backgroundColor: getStatusColor(label),
-        borderColor: getStatusColor(label),
-        borderWidth: 1,
-        barPercentage: 0.8,
-        categoryPercentage: 0.85
-    }));
+    // Create gradient colors for bars (matching dashboard bar colors)
+    const gradientColors = [
+        { start: '#f86bad', end: '#ee4189' },  // Pink for Available
+        { start: '#816ad3', end: '#7240fa' },  // Purple for Allocated
+        { start: '#b755f0', end: '#b12fd8' },  // Violet for Maintenance
+        { start: '#fa3bda', end: '#ff007f' }   // Magenta for Missing
+    ];
+    const boxShadowColors = ['rgb(223, 32, 143)', 'rgb(156, 88, 212)', 'rgb(176, 105, 218)', 'rgb(250, 59, 218)'];
+
+    const datasets = labels.map((label, index) => {
+        const color = gradientColors[index];
+        return {
+            label,
+            data: departments.map(dept => {
+                const deptData = allDistribution.find(d => d.department === dept);
+                return deptData ? deptData[label] || 0 : 0;
+            }),
+            backgroundColor: (context) => {
+                const chart = context.chart;
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return color.start;
+                // Create gradient
+                const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                gradient.addColorStop(0, color.start);
+                gradient.addColorStop(1, color.end);
+                return gradient;
+            },
+            borderColor: boxShadowColors[index], // Use box-shadow color for border
+            borderWidth: 2,
+            barPercentage: 0.8,
+            categoryPercentage: 0.85,
+            borderRadius: 8,
+            borderSkipped: false
+        };
+    });
 
     dapartments = new Chart(ctx, {
         type: 'bar',
@@ -93,26 +116,33 @@ function renderDapartmentsChart(allDistribution) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            },
             plugins: {
                 title: {
                     display: true,
                     text: '📊 All Departments',
-                    font: { size: 24, weight: 'bold' }
+                    font: { size: 24, weight: 'bold' },
+                    color: '#e8b4e8'
                 },
                 legend: {
                     position: 'top',
-                    labels: { font: { size: 16 } }
+                    labels: { font: { size: 16 }, color: '#ffffff' }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Number of Assets', font: { size: 16 } },
-                    ticks: { font: { size: 14 } }
+                    title: { display: true, text: 'Number of Assets', font: { size: 16 }, color: '#ffffff' },
+                    ticks: { font: { size: 14 }, color: '#ffffff' },
+                    grid: { color: 'rgba(255,255,255,0.1)' }
                 },
                 x: {
-                    title: { display: true, text: 'Departments', font: { size: 16 } },
-                    ticks: { font: { size: 14 } }
+                    title: { display: true, text: 'Departments', font: { size: 16 }, color: '#ffffff' },
+                    ticks: { font: { size: 14 }, color: '#ffffff' },
+                    grid: { display: false }
                 }
             }
         }
