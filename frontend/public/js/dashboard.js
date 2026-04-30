@@ -232,8 +232,12 @@ async function loadDashboardStats() {
             if (depreciationEl) {
                 depreciationEl.textContent = formatPKRCurrency(stats.depreciation || 0);
             }
-            document.getElementById('complianceScore').textContent = (stats.complianceScore || 0).toFixed(1) + '%';
-            document.getElementById('complianceArc').style.strokeDasharray = (stats.complianceScore || 0) + ' 100';
+            const score = Math.max(0, Math.min(100, Number(stats.complianceScore || 0)));
+            document.getElementById('complianceScore').textContent = score.toFixed(1) + '%';
+            const r = 120;
+            const circumference = 2 * Math.PI * r;
+            const filled = (score / 100) * circumference;
+            document.getElementById('complianceArc').style.strokeDasharray = `${filled} ${circumference}`;
             document.getElementById('auditedCount').textContent = stats.auditedCount || 0;
             document.getElementById('maintainedCount').textContent = stats.maintainedCount || 0;
 

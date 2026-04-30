@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, logout, signup, getAllUsers, getUserStats, deleteUser, getUserById, updateUser, resetPassword, getDepartments, createDepartment, updateDepartment, deleteDepartment } = require('../controllers/authController');
+const { login, logout, signup, getMyProfile, updateMyProfile, getAllUsers, getUserStats, deleteUser, getUserById, updateUser, resetPassword, getDepartments, createDepartment, updateDepartment, deleteDepartment } = require('../controllers/authController');
 const authenticateToken = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
@@ -12,6 +12,12 @@ router.post('/signup', signup);
 
 // POST /api/auth/logout
 router.post('/logout', authenticateToken, logout);
+
+// GET /api/auth/me - current user profile
+router.get('/me', authenticateToken, getMyProfile);
+
+// PATCH /api/auth/me - update own profile (full_name, email)
+router.patch('/me', authenticateToken, updateMyProfile);
 
 // GET /api/auth/users - Admin only
 router.get('/users', authenticateToken, roleCheck(['Admin']), getAllUsers);

@@ -70,12 +70,6 @@ async function logout(req, res) {
   }
 }
 
-module.exports = {
-  login,
-  logout
-};
-
-
 async function signup(req, res) {
   try {
     const { username, email, password, role, department, passkey } = req.body;
@@ -159,6 +153,71 @@ async function signup(req, res) {
       success: false, 
       message: 'Error creating account: ' + error.message 
     });
+  }
+}
+
+async function getMyProfile(req, res) {
+  try {
+    const userId = req.user.userId;
+    const user = await getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({
+      success: true,
+      user: {
+        userId: user.user_id,
+        username: user.username,
+        fullName: user.full_name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        createdAt: user.created_at
+      }
+    });
+  } catch (error) {
+    console.error('Get my profile error:', error);
+    res.status(500).json({ success: false, message: 'Error fetching profile: ' + error.message });
+  }
+}
+
+async function updateMyProfile(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { full_name, email } = req.body;
+
+    const updateData = {};
+    if (typeof full_name === 'string') updateData.full_name = full_name.trim();
+    if (typeof email === 'string') updateData.email = email.trim();
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: 'No profile fields provided' });
+    }
+
+    if (updateData.email) {
+      const existing = await findUserByEmail(updateData.email);
+      if (existing && existing.user_id !== userId) {
+        return res.status(409).json({ success: false, message: 'Email already registered' });
+      }
+    }
+
+    const updated = await updateUser(userId, updateData);
+
+    res.json({
+      success: true,
+      user: {
+        userId: updated.user_id,
+        username: updated.username,
+        fullName: updated.full_name,
+        email: updated.email,
+        role: updated.role,
+        department: updated.department,
+        createdAt: updated.created_at
+      }
+    });
+  } catch (error) {
+    console.error('Update my profile error:', error);
+    res.status(500).json({ success: false, message: 'Error updating profile: ' + error.message });
   }
 }
 
@@ -300,6 +359,8 @@ module.exports = {
   login,
   logout,
   signup,
+  getMyProfile,
+  updateMyProfile,
   getAllUsers,
   getUserStats,
   deleteUser,

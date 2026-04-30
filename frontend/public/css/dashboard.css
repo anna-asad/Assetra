@@ -179,8 +179,18 @@ body {
     min-height: 400px;
 }
 
+.metric-card h3 {
+    font-size: 20px;
+    margin-bottom: 18px;
+    color: #e8b4e8;
+    letter-spacing: 0.5px;
+}
+
 .bottom-metrics {
     margin-top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
 .metric-item {
@@ -193,11 +203,17 @@ body {
 .small-metrics {
     font-size: 14px;
     text-align: center;
+    width: 100%;
+    padding: 12px 10px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(232, 180, 232, 0.12);
 }
 
 .small-metrics .metric-number {
     font-size: 18px;
-    font-weight: normal;
+    font-weight: 700;
+    color: #e8b4e8;
 }
 
 .metric-number, .metric-number-large {
@@ -225,6 +241,11 @@ body {
     position: relative;
     width: 240px;
     height: 240px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(232, 180, 232, 0.14);
 }
 
 .compliance-circle {
@@ -240,13 +261,14 @@ body {
 
 .circle-progress {
     fill: none;
-    stroke: url(#gradient);
+    stroke: url(#complianceGradient);
     stroke-width: 8;
     stroke-linecap: round;
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
-    stroke-dasharray: 0 327;
+    stroke-dasharray: 0 754;
     transition: stroke-dasharray 1s ease;
+    filter: drop-shadow(0 0 10px rgba(250, 59, 218, 0.35));
 }
 
 .circle-text {
@@ -254,9 +276,10 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 36px;
+    font-size: 40px;
     font-weight: bold;
     color: #e8b4e8;
+    text-shadow: 0 0 18px rgba(250, 59, 218, 0.35);
 }
 
 .maintenance-card {

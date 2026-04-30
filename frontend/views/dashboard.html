@@ -133,6 +133,13 @@
                     <div class="metric-item compliance-circle-container">
                         <div class="circle-container">
                             <svg viewBox="0 0 320 320" class="compliance-circle">
+                                <defs>
+                                    <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#fa3bda" stop-opacity="1" />
+                                        <stop offset="55%" stop-color="#e8b4e8" stop-opacity="1" />
+                                        <stop offset="100%" stop-color="#d8a4d8" stop-opacity="1" />
+                                    </linearGradient>
+                                </defs>
                                 <circle class="circle-bg" cx="160" cy="160" r="120"></circle>
                                 <circle id="complianceArc" class="circle-progress" cx="160" cy="160" r="120" stroke-dasharray="0 754"></circle>
                             </svg>
