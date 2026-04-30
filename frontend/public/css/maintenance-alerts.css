@@ -137,6 +137,8 @@ body {
     color: #ccc;
     background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
     border-radius: 10px;
+    border: 1.5px solid rgba(250, 59, 218, 0.35);
+    box-shadow: 0 0 18px rgba(250, 59, 218, 0.12);
 }
 
 /* Alert Summary */
@@ -154,6 +156,9 @@ body {
     align-items: center;
     gap: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid rgba(250, 59, 218, 0.28);
+    box-shadow: 0 0 16px rgba(250, 59, 218, 0.10), 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .summary-card.critical {
@@ -162,6 +167,12 @@ body {
 
 .summary-card.warning {
     border-left: 5px solid #ffd43b;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(250, 59, 218, 0.55);
+    box-shadow: 0 0 22px rgba(250, 59, 218, 0.18), 0 10px 26px rgba(0, 0, 0, 0.35);
 }
 
 .card-icon {
@@ -190,6 +201,8 @@ body {
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid rgba(250, 59, 218, 0.28);
+    box-shadow: 0 0 18px rgba(250, 59, 218, 0.10), 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .section-title {
@@ -248,12 +261,12 @@ tbody tr:hover {
 }
 
 tbody tr.critical-row {
-    background-color: rgba(255, 107, 107, 0.1);
+    background-color: rgba(255, 107, 107, 0.10);
     border-left: 4px solid #ff6b6b;
 }
 
 tbody tr.warning-row {
-    background-color: rgba(255, 212, 59, 0.1);
+    background-color: rgba(255, 212, 59, 0.10);
     border-left: 4px solid #ffd43b;
 }
 
@@ -268,11 +281,13 @@ tbody tr.warning-row {
 .priority-critical {
     background-color: #ff6b6b;
     color: #fff;
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.22);
 }
 
 .priority-warning {
     background-color: #ffd43b;
     color: #333;
+    box-shadow: 0 0 12px rgba(255, 212, 59, 0.20);
 }
 
 /* Health Score Badge */
@@ -289,8 +304,14 @@ tbody tr.warning-row {
 }
 
 .health-warning {
-    background-color: #ffd43b;
-    color: #333;
+    background: linear-gradient(135deg, #e8b4e8 0%, #d8a4d8 100%);
+    color: #2a2a2a;
+}
+
+.health-ok {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(232, 180, 232, 0.18);
 }
 
 /* Responsive Design */

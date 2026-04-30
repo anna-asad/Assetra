@@ -1138,14 +1138,34 @@ async function getMaintenanceAlerts(department = null) {
         a.status,
         a.purchase_date,
         a.purchase_cost,
+        a.useful_life_years,
         DATEDIFF(day, a.purchase_date, GETDATE()) as age_days,
         (SELECT MAX(maintenance_date) FROM maintenance_records WHERE asset_id = a.asset_id) as last_mr_date
       FROM assets a
       WHERE (
-        a.health_score < 70 
-        OR a.status IN ('Maintenance', 'Missing')
-        OR (a.warranty_expiry_date IS NOT NULL AND a.warranty_expiry_date < GETDATE())
-        OR (a.last_maintenance_date IS NULL AND NOT EXISTS (SELECT 1 FROM maintenance_records WHERE asset_id = a.asset_id))
+        -- Only allowed alert conditions:
+        -- 0) Status is Maintenance (YELLOW)
+        a.status = 'Maintenance'
+        -- 1) Health score < 50 (RED)
+        OR a.health_score < 50
+        -- 2) Warranty expires in < 30 days (YELLOW)
+        OR (
+          a.warranty_expiry_date IS NOT NULL
+          AND a.warranty_expiry_date >= CAST(GETDATE() AS DATE)
+          AND a.warranty_expiry_date < DATEADD(day, 30, CAST(GETDATE() AS DATE))
+        )
+        -- 3) Warranty already expired (RED)
+        OR (
+          a.warranty_expiry_date IS NOT NULL
+          AND a.warranty_expiry_date < CAST(GETDATE() AS DATE)
+        )
+        -- 4) Age > useful life years (RED)
+        OR (
+          a.purchase_date IS NOT NULL
+          AND a.useful_life_years IS NOT NULL
+          AND a.useful_life_years > 0
+          AND DATEDIFF(day, a.purchase_date, GETDATE()) > (a.useful_life_years * 365)
+        )
       )
     `;
     
@@ -1161,23 +1181,40 @@ async function getMaintenanceAlerts(department = null) {
     
     const alerts = result.recordset.map(asset => {
       const reasons = [];
-      if (asset.health_score < 50) reasons.push('Critical: Very low health score');
-      else if (asset.health_score < 70) reasons.push('Warning: Low health score');
-      
-      if (asset.status === 'Maintenance') reasons.push('Critical: Currently under maintenance');
-      if (asset.status === 'Missing') reasons.push('Critical: Asset is missing');
-      
-      if (asset.warranty_expiry_date && new Date(asset.warranty_expiry_date) < new Date()) {
-        reasons.push('Warning: Warranty expired');
+
+      // YELLOW: Status is Maintenance
+      if (asset.status === 'Maintenance') {
+        reasons.push('YELLOW: Asset status = Maintenance');
       }
-      
-      const lastMaint = asset.last_maintenance_date || asset.last_mr_date;
-      if (!lastMaint) {
-        reasons.push('Warning: No maintenance recorded');
-      } else {
-        const daysSince = Math.floor((new Date() - new Date(lastMaint)) / (1000 * 60 * 60 * 24));
-        if (daysSince > 365) reasons.push('Warning: Maintenance overdue (>1 year)');
+
+      // RED: Health score < 50
+      if ((asset.health_score ?? 0) < 50) {
+        reasons.push('RED: Health score < 50');
       }
+
+      // Warranty-based (YELLOW/RED)
+      const warranty = asset.warranty_expiry_date ? new Date(asset.warranty_expiry_date) : null;
+      if (warranty) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const exp = new Date(warranty);
+        exp.setHours(0, 0, 0, 0);
+        const daysToExpiry = Math.floor((exp - today) / (1000 * 60 * 60 * 24));
+        if (daysToExpiry < 0) {
+          reasons.push('RED: Warranty already expired');
+        } else if (daysToExpiry < 30) {
+          reasons.push('YELLOW: Warranty expires in < 30 days');
+        }
+      }
+
+      // RED: Age > useful life years
+      const usefulLifeYears = Number(asset.useful_life_years ?? 0);
+      const ageDays = Number(asset.age_days ?? 0);
+      if (usefulLifeYears > 0 && ageDays > usefulLifeYears * 365) {
+        reasons.push('RED: Age > useful life years');
+      }
+
+      const priority = reasons.some(r => r.startsWith('RED:')) ? 'RED' : 'YELLOW';
       
       return {
         asset_id: asset.asset_id,
@@ -1185,10 +1222,13 @@ async function getMaintenanceAlerts(department = null) {
         asset_name: asset.asset_name,
         department: asset.department,
         health_score: asset.health_score,
-        alert_reason: reasons.join('; ') || 'Attention required',
+        priority,
+        alert_reason: reasons.join('; '),
         warranty_expiry_date: asset.warranty_expiry_date,
-        last_maintenance_date: lastMaint,
-        status: asset.status
+        last_maintenance_date: asset.last_maintenance_date || asset.last_mr_date,
+        status: asset.status,
+        useful_life_years: asset.useful_life_years,
+        age_days: asset.age_days
       };
     });
     

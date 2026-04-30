@@ -98,16 +98,13 @@ function displayAlerts(alerts) {
     const alertsTable = document.getElementById('alertsTable');
     const tbody = document.getElementById('alertsTableBody');
     
-    // Count alerts by severity
+    // Count alerts by priority (RED / YELLOW)
     let criticalCount = 0;
     let warningCount = 0;
-    
+
     alerts.forEach(alert => {
-        if (alert.alert_reason.includes('Critical')) {
-            criticalCount++;
-        } else if (alert.alert_reason.includes('Warning')) {
-            warningCount++;
-        }
+        if (alert.priority === 'RED') criticalCount++;
+        else warningCount++;
     });
     
     document.getElementById('criticalCount').textContent = criticalCount;
@@ -122,17 +119,18 @@ function displayAlerts(alerts) {
         tbody.innerHTML = '';
         
         alerts.forEach(alert => {
-            const isCritical = alert.alert_reason.includes('Critical');
+            const isCritical = alert.priority === 'RED';
             const row = document.createElement('tr');
             row.className = isCritical ? 'critical-row' : 'warning-row';
             
             const priorityBadge = isCritical ? 
-                '<span class="priority-badge priority-critical">CRITICAL</span>' :
-                '<span class="priority-badge priority-warning">WARNING</span>';
+                '<span class="priority-badge priority-critical">RED</span>' :
+                '<span class="priority-badge priority-warning">YELLOW</span>';
             
-            const healthBadge = alert.health_score < 50 ?
-                `<span class="health-score health-critical">${alert.health_score}</span>` :
-                `<span class="health-score health-warning">${alert.health_score}</span>`;
+            const score = Number(alert.health_score ?? 0);
+            const healthBadge = score < 50
+                ? `<span class="health-score health-critical">${score}</span>`
+                : `<span class="health-score health-ok">${score}</span>`;
             
             const warrantyDate = alert.warranty_expiry_date ? 
                 new Date(alert.warranty_expiry_date).toLocaleDateString() : 'N/A';
@@ -146,7 +144,7 @@ function displayAlerts(alerts) {
                 <td>${alert.asset_name}</td>
                 <td>${alert.department || '-'}</td>
                 <td>${healthBadge}</td>
-                <td>${alert.alert_reason}</td>
+                <td>${alert.alert_reason || '-'}</td>
                 <td>${warrantyDate}</td>
                 <td>${lastMaintenance}</td>
             `;
