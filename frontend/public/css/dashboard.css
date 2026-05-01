@@ -119,10 +119,12 @@ body {
 
 .stat-card {
     background: linear-gradient(135deg, #9b7b9b 0%, #8b6b8b 100%);
-    padding: 30px;
+    padding: 30px 15px;
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    min-width: 0;
 }
 
 .stat-card.clickable-card {
@@ -150,6 +152,15 @@ body {
     font-weight: bold;
     color: #e8b4e8;
     margin-bottom: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.1;
+}
+
+/* Scale down currency/long values so they don't overflow the card */
+.stat-number.long-value {
+    font-size: clamp(18px, 3.0vw, 45px);
+    line-height: 1.2;
 }
 
 .stat-label {

@@ -192,7 +192,9 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 function formatPKRCurrency(value) {
   return new Intl.NumberFormat('en-PK', {
     style: 'currency',
-    currency: 'PKR'
+    currency: 'PKR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(value);
 }
 
@@ -222,12 +224,15 @@ async function loadDashboardStats() {
 
             // Update stat cards
             document.getElementById('totalAssets').textContent = stats.totalAssets || 0;
-            document.getElementById('totalAssetValue').textContent = formatPKRCurrency(stats.totalAssetValue || 0);
+            const totalValueEl = document.getElementById('totalAssetValue');
+            totalValueEl.textContent = formatPKRCurrency(stats.totalAssetValue || 0);
+            totalValueEl.classList.add('long-value');
             document.getElementById('missingAssets').textContent = stats.statusBreakdown.Missing || 0;
             document.getElementById('maintenanceAssets').textContent = stats.statusBreakdown.Maintenance || 0;
             
             // New metrics
-            document.getElementById('maintenanceCost').textContent = formatPKRCurrency(stats.maintenanceCost || 0);
+            const maintenanceCostEl = document.getElementById('maintenanceCost');
+            maintenanceCostEl.textContent = formatPKRCurrency(stats.maintenanceCost || 0);
             const depreciationEl = document.getElementById('depreciationValue');
             if (depreciationEl) {
                 depreciationEl.textContent = formatPKRCurrency(stats.depreciation || 0);

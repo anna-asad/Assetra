@@ -710,10 +710,10 @@ async function deleteAssetById(assetId, userId) {
 async function getMaintenanceCost(department = null) {
   try {
     const pool = await getConnection();
-    let query = 'SELECT ISNULL(SUM(maintenance_cost), 0) as total_cost FROM assets';
+    let query = `SELECT ISNULL(SUM(maintenance_cost), 0) as total_cost FROM assets WHERE status = 'Maintenance'`;
     const request = pool.request();
     if (department) {
-      query += ' WHERE department = @department';
+      query += ' AND department = @department';
       request.input('department', sql.NVarChar, department);
     }
     const result = await request.query(query);
@@ -983,19 +983,20 @@ async function getUniqueDepartments() {
   }
 }
 
-async function getAssetsByValue() {
+async function getAssetsByValue(deptFilter) {
   try {
     const pool = await getConnection();
-    const result = await pool.request()
-      .query(`
-        SELECT department, 
-               COUNT(*) as asset_count, 
-               SUM(purchase_cost) as total_value
-        FROM assets 
-        WHERE department IS NOT NULL
-        GROUP BY department
-        ORDER BY total_value DESC
-      `);
+    const request = pool.request();
+    let query = `
+      SELECT asset_id, asset_name, department, status, purchase_cost
+      FROM assets
+    `;
+    if (deptFilter) {
+      request.input('dept', deptFilter);
+      query += ` WHERE department = @dept`;
+    }
+    query += ` ORDER BY purchase_cost DESC`;
+    const result = await request.query(query);
     return result.recordset;
   } catch (error) {
     console.error('Error getting assets by value:', error);

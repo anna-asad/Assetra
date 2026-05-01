@@ -94,6 +94,9 @@ async function loadAssetForEdit(assetId) {
             setFieldValue('status', asset.status);
             setFieldValue('purchase_date', asset.purchase_date ? asset.purchase_date.split('T')[0] : '');
             setFieldValue('purchase_cost', asset.purchase_cost);
+            setFieldValue('maintenance_cost', asset.maintenance_cost);
+            setFieldValue('warranty_expiry_date', asset.warranty_expiry_date ? asset.warranty_expiry_date.split('T')[0] : '');
+            setFieldValue('useful_life_years', asset.useful_life_years);
             setFieldValue('location', asset.location);
             setFieldValue('department', asset.department);
             setFieldValue('description', asset.description);
@@ -227,6 +230,7 @@ function setupFormSubmission() {
             status: document.getElementById('status').value,
             purchase_date: document.getElementById('purchase_date').value || null,
             purchase_cost: document.getElementById('purchase_cost').value,
+            maintenance_cost: document.getElementById('maintenance_cost').value || 0,
             warranty_expiry_date: document.getElementById('warranty_expiry_date').value || null,
             useful_life_years: document.getElementById('useful_life_years').value || 5,
             location: document.getElementById('location').value || null,
