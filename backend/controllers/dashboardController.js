@@ -1,4 +1,4 @@
-const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore, getUniqueDepartments, getAssetsByValue } = require('../models/database');
+const { getTotalAssets, getAssetsByStatus, getTotalAssetsByDepartment, getAssetsByStatusAndDepartment, getTotalAssetValue, getMaintenanceCost, getDepreciation, getAuditedCount, getMaintainedCount, getComplianceScore, getUniqueDepartments, getAssetsByValue, getUserCountsByRole } = require('../models/database');
 
 async function getDashboardStats(req, res) {
   try {
@@ -7,7 +7,12 @@ async function getDashboardStats(req, res) {
 
     console.log('Dashboard Stats - User Role:', userRole, 'Department:', userDepartment);
 
-    let totalAssets, assetsByStatus, maintenanceCost, depreciation, auditedCount, maintainedCount, complianceScore, totalAssetValue;
+    let totalAssets, assetsByStatus, maintenanceCost, depreciation, auditedCount, maintainedCount, complianceScore, totalAssetValue, userCounts;
+
+    // Total users is always fetched for Admin (used in settings page)
+    if (userRole === 'Admin') {
+      userCounts = await getUserCountsByRole();
+    }
 
     if (userRole === 'Admin' || userRole === 'Viewer') {
       totalAssets = await getTotalAssets();
@@ -49,6 +54,7 @@ async function getDashboardStats(req, res) {
       stats: {
         totalAssets,
         totalAssetValue,
+        totalUsers: userCounts ? userCounts.total : undefined,
         statusBreakdown,
         maintenanceCost,
         depreciation,
