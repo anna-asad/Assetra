@@ -25,6 +25,7 @@ function initSidebar() {
                     <a href="/views/asset-requests.html" class="${currentPage.includes('asset-requests') ? 'active' : ''}"> 
                         <span class="menu-icon"><i class="fas fa-file-signature"></i></span>
                         <span class="menu-text">Asset Requests</span>
+                        <span class="menu-badge" id="assetRequestBadge" style="display: none;">0</span>
                     </a>
                 </li>
                 <li style="display: block">
@@ -158,3 +159,49 @@ if (document.readyState === 'loading') {
 } else {
     initSidebar();
 }
+
+// Update Asset Request Badge Count (Admin and Manager only)
+async function updateAssetRequestBadge() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Only for Admin and Manager
+    if (!token || (user.role !== 'Admin' && user.role !== 'Manager')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/assets/asset-requests', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.requests) {
+            // Count pending requests
+            const pendingCount = data.requests.filter(req => req.status === 'Pending').length;
+            
+            const badge = document.getElementById('assetRequestBadge');
+            if (badge) {
+                if (pendingCount > 0) {
+                    badge.textContent = pendingCount > 99 ? '99+' : pendingCount;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching request count:', error);
+    }
+}
+
+// Initialize badge count after sidebar is created
+setTimeout(() => {
+    updateAssetRequestBadge();
+    // Poll for updates every 30 seconds
+    setInterval(updateAssetRequestBadge, 30000);
+}, 500);
+
+// Make function globally available
+window.updateAssetRequestBadge = updateAssetRequestBadge;

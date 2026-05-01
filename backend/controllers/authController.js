@@ -5,14 +5,35 @@ async function login(req, res) {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    // Validation
+    const errors = {};
+    
+    // Username validation
+    if (!username || username.trim() === '') {
+      errors.username = 'Username is required';
+    } else if (username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (username.length > 50) {
+      errors.username = 'Username must not exceed 50 characters';
+    }
+    
+    // Password validation (no minimum for login - allow existing users with short passwords)
+    if (!password || password.trim() === '') {
+      errors.password = 'Password is required';
+    } else if (password.length > 255) {
+      errors.password = 'Password is too long';
+    }
+    
+    // Return validation errors
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please enter username and password' 
+        message: Object.values(errors)[0],
+        errors
       });
     }
 
-    const user = await findUserByUsername(username);
+    const user = await findUserByUsername(username.trim());
     if (!user || password !== user.password_hash) {
       return res.status(401).json({ 
         success: false, 
@@ -75,10 +96,52 @@ async function signup(req, res) {
   try {
     const { username, email, password, role, department, passkey } = req.body;
 
-    if (!username || !email || !password || !role) {
+    // Validation
+    const errors = {};
+    
+    // Username validation
+    if (!username || username.trim() === '') {
+      errors.username = 'Username is required';
+    } else if (username.trim().length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (username.trim().length > 50) {
+      errors.username = 'Username must not exceed 50 characters';
+    }
+    
+    // Email validation
+    if (!email || email.trim() === '') {
+      errors.email = 'Email is required';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        errors.email = 'Invalid email format';
+      } else if (email.trim().length > 100) {
+        errors.email = 'Email must not exceed 100 characters';
+      }
+    }
+    
+    // Password validation
+    if (!password || password.trim() === '') {
+      errors.password = 'Password is required';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    } else if (password.length > 255) {
+      errors.password = 'Password must not exceed 255 characters';
+    }
+    
+    // Role validation
+    if (!role || role.trim() === '') {
+      errors.role = 'Role is required';
+    } else if (!['Admin', 'Manager', 'Viewer'].includes(role)) {
+      errors.role = 'Invalid role selected';
+    }
+    
+    // Return validation errors
+    if (Object.keys(errors).length > 0) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Username, email, password, and role are required' 
+        message: Object.values(errors)[0],
+        errors
       });
     }
 
@@ -111,7 +174,7 @@ async function signup(req, res) {
       });
     }
 
-    const existingUser = await findUserByUsername(username);
+    const existingUser = await findUserByUsername(username.trim());
     if (existingUser) {
       return res.status(409).json({ 
         success: false, 
@@ -119,7 +182,7 @@ async function signup(req, res) {
       });
     }
 
-    const existingEmail = await findUserByEmail(email);
+    const existingEmail = await findUserByEmail(email.trim());
     if (existingEmail) {
       return res.status(409).json({ 
         success: false, 
@@ -128,11 +191,11 @@ async function signup(req, res) {
     }
 
     const userData = {
-      username,
-      email,
+      username: username.trim(),
+      email: email.trim(),
       password,
       role,
-      full_name: username,
+      full_name: username.trim(),
       department: (role === 'Admin' || role === 'Viewer') ? null : department
     };
 

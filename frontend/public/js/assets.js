@@ -250,18 +250,18 @@ async function updateStatus(assetId, newStatus) {
         if (data.success) {
             loadAssets(document.getElementById('statusFilter').value);
         } else {
-            alert(data.message || 'Failed to update status');
+            toast.error(data.message || 'Failed to update status');
         }
     } catch (error) {
         console.error('Error updating status:', error);
-        alert('Connection error. Please try again.');
+        toast.error('Connection error. Please try again.');
     }
 }
 
 // New button functions
 function viewDetails() {
     if (!selectedAssetId) {
-        alert('Please select an asset to view details');
+        toast.warning('Please select an asset to view details');
         return;
     }
     window.location.href = `/views/asset-details.html?id=${selectedAssetId}`;
@@ -273,7 +273,7 @@ function editSelected() {
         return;
     }
     if (!selectedAssetId) {
-        alert('Please select an asset to edit');
+        toast.warning('Please select an asset to edit');
         return;
     }
     // Store selected asset ID and redirect to edit form
@@ -287,7 +287,7 @@ async function removeSelected() {
         return;
     }
     if (!selectedAssetId) {
-        alert('Please select an asset to remove');
+        toast.warning('Please select an asset to remove');
         return;
     }
     if (!confirm('Are you sure you want to permanently delete this asset?')) return;
@@ -303,20 +303,20 @@ async function removeSelected() {
         if (response.ok) {
             loadAssets(document.getElementById('statusFilter').value);
             selectedAssetId = null;
-            alert('Asset deleted successfully');
+            toast.success('Asset deleted successfully');
         } else {
             const data = await response.json();
-            alert(data.message || 'Failed to delete asset');
+            toast.error(data.message || 'Failed to delete asset');
         }
     } catch (error) {
         console.error('Error deleting asset:', error);
-        alert('Connection error. Please try again.');
+        toast.error('Connection error. Please try again.');
     }
 }
 
 async function markMaintenance() {
     if (!selectedAssetId) {
-        alert('Please select an asset');
+        toast.warning('Please select an asset');
         return;
     }
     await updateStatus(selectedAssetId, 'Maintenance');
@@ -324,7 +324,7 @@ async function markMaintenance() {
 
 async function markMissing() {
     if (!selectedAssetId) {
-        alert('Please select an asset');
+        toast.warning('Please select an asset');
         return;
     }
     await updateStatus(selectedAssetId, 'Missing');
@@ -373,7 +373,7 @@ function assignSelected() {
         return;
     }
     if (!selectedAssetId) {
-        alert('Please select an asset to assign');
+        toast.warning('Please select an asset to assign');
         return;
     }
     document.getElementById('assignModal').style.display = 'block';
@@ -432,15 +432,15 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (data.success) {
-            alert('Asset assigned successfully!');
+            toast.success('Asset assigned successfully!');
             closeAssignModal();
             loadAssets(document.getElementById('statusFilter').value);
         } else {
-            alert(data.message || 'Failed to assign asset');
+            toast.error(data.message || 'Failed to assign asset');
         }
     } catch (error) {
         console.error('Error assigning asset:', error);
-        alert('Connection error. Please try again.');
+        toast.error('Connection error. Please try again.');
     }
 });
 
@@ -455,7 +455,7 @@ window.onclick = function(event) {
 // Disposal Workflow Functions
 function openDisposalModal() {
     if (!selectedAssetId) {
-        alert('Please select an asset to request disposal');
+        toast.warning('Please select an asset to request disposal');
         return;
     }
     document.getElementById('disposalModal').style.display = 'block';
@@ -487,15 +487,15 @@ document.getElementById('disposalForm').addEventListener('submit', async (e) => 
         const data = await response.json();
         
         if (data.success) {
-            alert('Disposal request submitted for approval.');
+            toast.success('Disposal request submitted for approval.');
             closeDisposalModal();
             loadAssets(document.getElementById('statusFilter').value);
         } else {
-            alert(data.message || 'Failed to submit disposal request');
+            toast.error(data.message || 'Failed to submit disposal request');
         }
     } catch (error) {
         console.error('Error requesting disposal:', error);
-        alert('Connection error. Please try again.');
+        toast.error('Connection error. Please try again.');
     }
 });
 
@@ -545,7 +545,7 @@ async function generatePDFReport() {
         
         if (!response.ok) {
             const error = await response.json();
-            alert(error.message || 'Failed to generate PDF report');
+            toast.error(error.message || 'Failed to generate PDF report');
             return;
         }
         
@@ -562,7 +562,7 @@ async function generatePDFReport() {
         
     } catch (error) {
         console.error('Error generating PDF report:', error);
-        alert('Error generating PDF report. Please try again.');
+        toast.error('Error generating PDF report. Please try again.');
     }
 }
 
@@ -588,7 +588,7 @@ async function generateExcelReport() {
         
         if (!response.ok) {
             const error = await response.json();
-            alert(error.message || 'Failed to generate Excel report');
+            toast.error(error.message || 'Failed to generate Excel report');
             return;
         }
         
@@ -605,6 +605,6 @@ async function generateExcelReport() {
         
     } catch (error) {
         console.error('Error generating Excel report:', error);
-        alert('Error generating Excel report. Please try again.');
+        toast.error('Error generating Excel report. Please try again.');
     }
 }

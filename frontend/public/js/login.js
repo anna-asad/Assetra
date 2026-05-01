@@ -1,36 +1,111 @@
+// Login Form Validation and Submission
 const loginForm = document.getElementById('loginForm');
-const errorMessage = document.getElementById('errorMessage');//this is  grabbing an element "errormessage" from html
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const submitBtn = document.getElementById('submitBtn');
+const errorMessage = document.getElementById('errorMessage');
 
-//waits for event "submit" to be clicked
-// asynch tells await can be used ie ui can wait for things to be fetched from db
+// Validation functions
+function validateUsername(username) {
+    if (!username || username.trim() === '') {
+        return 'Username is required';
+    }
+    if (username.length < 3) {
+        return 'Username must be at least 3 characters';
+    }
+    if (username.length > 50) {
+        return 'Username must not exceed 50 characters';
+    }
+    return '';
+}
 
-loginForm.addEventListener('submit', async (e) => 
-    {
-    e.preventDefault();// normally, submitting a form reloads the page. This line stops that
+function validatePassword(password) {
+    if (!password || password.trim() === '') {
+        return 'Password is required';
+    }
+    if (password.length > 255) {
+        return 'Password is too long';
+    }
+    // No minimum length for login - allow existing users with short passwords
+    return '';
+}
+
+// Real-time validation
+usernameInput.addEventListener('input', () => {
+    const error = validateUsername(usernameInput.value);
+    document.getElementById('usernameError').textContent = error;
+    if (error) {
+        usernameInput.classList.add('invalid');
+        usernameInput.classList.remove('valid');
+    } else {
+        usernameInput.classList.remove('invalid');
+        usernameInput.classList.add('valid');
+    }
+    updateSubmitButton();
+});
+
+passwordInput.addEventListener('input', () => {
+    const error = validatePassword(passwordInput.value);
+    document.getElementById('passwordError').textContent = error;
+    if (error) {
+        passwordInput.classList.add('invalid');
+        passwordInput.classList.remove('valid');
+    } else {
+        passwordInput.classList.remove('invalid');
+        passwordInput.classList.add('valid');
+    }
+    updateSubmitButton();
+});
+
+function updateSubmitButton() {
+    const usernameError = validateUsername(usernameInput.value);
+    const passwordError = validatePassword(passwordInput.value);
     
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    if (usernameError || passwordError) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.style.cursor = 'not-allowed';
+    } else {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+    }
+}
+
+// Form submission
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     
-    // hidee previous error
-    errorMessage.classList.remove('show');//hides the error box if it was visible.
+    // Clear previous errors
     errorMessage.textContent = '';
+    errorMessage.classList.remove('show');
     
-    // Disable button during request
-    const submitBtn = loginForm.querySelector('.signin-btn');
+    // Validate all fields
+    const usernameError = validateUsername(usernameInput.value);
+    const passwordError = validatePassword(passwordInput.value);
+    
+    if (usernameError || passwordError) {
+        errorMessage.textContent = usernameError || passwordError;
+        errorMessage.classList.add('show');
+        return;
+    }
+    
+    // Disable submit button
     submitBtn.disabled = true;
     submitBtn.textContent = 'Signing in...';
     
     try {
-        const response = await fetch('/api/auth/login', //fetch sends an HTTP request to your server
-            {
-            method: 'POST',//sending data.
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json'//tells the server we’re sending JSON.
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })//converts { username, password } into JSON text.
+            body: JSON.stringify({
+                username: usernameInput.value.trim(),
+                password: passwordInput.value
+            })
         });
         
-        //waits for the server and Converts the server’s reply into a JavaScript object.
         const data = await response.json();
         
         if (data.success) {
@@ -41,31 +116,18 @@ loginForm.addEventListener('submit', async (e) =>
             // Redirect to dashboard
             window.location.href = '/views/dashboard.html';
         } else {
-            // Show error message
-            errorMessage.textContent = data.message || 'Login failed. Please try again.';
+            errorMessage.textContent = data.message || 'Login failed';
             errorMessage.classList.add('show');
         }
-    } catch (error) 
-    {
+    } catch (error) {
         console.error('Login error:', error);
-        errorMessage.textContent = 'Connection error. Please check if the server is running.';
+        errorMessage.textContent = 'Connection error. Please try again.';
         errorMessage.classList.add('show');
     } finally {
-        // Re-enable button
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign in';
     }
 });
 
-// Check if already logged in
-//window is a global object
-//this works when we refresh the page 
-window.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');//checks if a login token exists.
-    // If yes then the user is already authenticated,
-    //so skip the login page and redirect them to the dashboard.
-    if (token) {
-        // redirect to dashboard if user is already logged in
-        window.location.href = '/views/dashboard.html';
-    }
-});
+// Initial button state
+updateSubmitButton();

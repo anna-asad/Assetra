@@ -20,7 +20,7 @@
             <div class="menu-icon menu-toggle">☰</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
-<div class="header-right">
+        <div class="header-right">
             <span class="user-name" id="userName">User</span>
             <div class="user-avatar">
                 <img id="profilePicture" src="/public/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
@@ -98,7 +98,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="purchase_cost">Purchase Cost</label>
+                        <label for="purchase_cost">Purchase Cost *</label>
                         <input 
                             type="number" 
                             id="purchase_cost" 
@@ -143,9 +143,7 @@
                             min="1"
                         >
                     </div>
-                </div>
 
-                <div class="form-row">
                     <div class="form-group">
                         <label for="location">Location</label>
                         <input 
@@ -155,10 +153,12 @@
                             placeholder="e.g., Office Floor 2"
                         >
                     </div>
+                </div>
 
+                <div class="form-row">
                     <div class="form-group">
                         <label for="department">Department</label>
-<select id="department" name="department">
+                        <select id="department" name="department">
                             <option value="">Select Department</option>
                             <option value="Computer Science">Computer Science</option>
                             <option value="Electrical Engineering">Electrical Engineering</option>
@@ -195,7 +195,7 @@
         </div>
     </main>
 
-<script src="/js/sidebar.js"></script>
+    <script src="/js/sidebar.js"></script>
     <script src="/js/header-profile.js"></script>
     <script src="/js/add-asset.js"></script>
 </body>

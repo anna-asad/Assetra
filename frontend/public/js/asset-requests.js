@@ -5,6 +5,14 @@ if (!token) window.location.href = '/views/login.html';
 
 document.getElementById('userName').textContent = user.fullName || user.username;
 
+// Hide request form for Admin and Manager (only Viewers can submit requests)
+if (user.role === 'Admin' || user.role === 'Manager') {
+    const requestFormCard = document.querySelector('.request-form-card');
+    if (requestFormCard) {
+        requestFormCard.style.display = 'none';
+    }
+}
+
 async function loadRequests() {
     try {
         const response = await fetch('/api/assets/asset-requests', {
@@ -79,12 +87,18 @@ document.getElementById('assetRequestForm').addEventListener('submit', async (e)
         });
         const data = await res.json();
         if (data.success) {
-            alert('Request submitted!');
+            toast.success('Request submitted successfully!');
             e.target.reset();
             loadRequests();
+            // Update sidebar badge
+            if (window.updateAssetRequestBadge) {
+                window.updateAssetRequestBadge();
+            }
+        } else {
+            toast.error(data.message || 'Failed to submit request');
         }
     } catch (err) {
-        alert('Error submitting request');
+        toast.error('Error submitting request');
     } finally {
         btn.disabled = false;
     }
@@ -99,11 +113,19 @@ async function processRequest(id, status) {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ status })
         });
-        if ((await res.json()).success) {
+        const data = await res.json();
+        if (data.success) {
+            toast.success(`Request ${status.toLowerCase()} successfully!`);
             loadRequests();
+            // Update sidebar badge
+            if (window.updateAssetRequestBadge) {
+                window.updateAssetRequestBadge();
+            }
+        } else {
+            toast.error(data.message || 'Failed to process request');
         }
     } catch (err) {
-        alert('Error processing request');
+        toast.error('Error processing request');
     }
 }
 

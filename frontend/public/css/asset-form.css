@@ -40,21 +40,6 @@ body {
     letter-spacing: 2px;
 }
 
-.header-center {
-    flex: 1;
-    max-width: 500px;
-    margin: 0 30px;
-}
-
-.search-bar {
-    width: 100%;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px;
-    font-size: 14px;
-    outline: none;
-}
-
 .header-right {
     display: flex;
     align-items: center;
@@ -103,8 +88,10 @@ body {
 }
 
 .page-title {
-    font-size: 28px;
+    font-size: 24px;
     color: #e8b4e8;
+    border-bottom: 2px solid #e8b4e8;
+    padding-bottom: 10px;
 }
 
 .back-btn {
@@ -297,11 +284,6 @@ body {
     .header {
         flex-direction: column;
         gap: 15px;
-    }
-
-    .header-center {
-        width: 100%;
-        margin: 0;
     }
 
     .form-row {
