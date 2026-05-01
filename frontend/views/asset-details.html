@@ -20,9 +20,11 @@
             <div class="menu-icon menu-toggle">☰</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
-        <div class="header-right">
+<div class="header-right">
             <span class="user-name" id="userName">User</span>
-            <div class="user-avatar"></div>
+            <div class="user-avatar">
+                <img id="profilePicture" src="/public/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
+            </div>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </header>
@@ -31,15 +33,15 @@
         <div class="page-header">
             <h2 class="page-title">Asset Details</h2>
             <div class="header-actions">
-                <button class="back-btn" onclick="goBack()">← Back to Assets</button>
+                <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back to Assets</button>
             </div>
         </div>
 
         <div class="details-container">
             <div class="tabs">
-                <button class="tab-btn active" onclick="showTab('details')">Details</button>
-                <button class="tab-btn" onclick="showTab('financial')">Financial</button>
-                <button class="tab-btn" onclick="showTab('history')">Change History</button>
+                <button class="tab-btn active" onclick="showTab('details')"><i class="fas fa-info-circle"></i> Details</button>
+                <button class="tab-btn" onclick="showTab('financial')"><i class="fas fa-file-invoice-dollar"></i> Financial</button>
+                <button class="tab-btn" onclick="showTab('history')"><i class="fas fa-history"></i> Change History</button>
             </div>
 
             <!-- Details Tab -->
@@ -97,7 +99,7 @@
                 <div id="loadingFinancial" class="loading-message">Loading financial data...</div>
                 <div id="financialData" class="financial-data" style="display: none;">
                     <div class="financial-section">
-                        <h3 class="section-title">Purchase Information</h3>
+                        <h3 class="section-title"><i class="fas fa-shopping-cart"></i> Purchase Information</h3>
                         <div class="financial-grid">
                             <div class="financial-card">
                                 <div class="card-label">Purchase Cost</div>
@@ -119,7 +121,7 @@
                     </div>
 
                     <div class="financial-section">
-                        <h3 class="section-title">Depreciation Analysis</h3>
+                        <h3 class="section-title"><i class="fas fa-chart-line"></i> Depreciation Analysis</h3>
                         <div class="financial-grid">
                             <div class="financial-card highlight">
                                 <div class="card-label">Current Book Value</div>
@@ -141,7 +143,7 @@
                     </div>
 
                     <div class="financial-section">
-                        <h3 class="section-title">Value Over Time</h3>
+                        <h3 class="section-title"><i class="fas fa-clock"></i> Value Over Time</h3>
                         <div class="depreciation-chart">
                             <canvas id="depreciationChart"></canvas>
                         </div>
@@ -162,7 +164,8 @@
         </div>
     </main>
 
-    <script src="/js/sidebar.js"></script>
+<script src="/js/sidebar.js"></script>
+    <script src="/js/header-profile.js"></script>
     <script src="/js/asset-details.js"></script>
 </body>
 </html>

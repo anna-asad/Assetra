@@ -1,15 +1,12 @@
-# TODO List
+# TODO - Remove Profile Pic Option
 
-## Task: Fix Asset Requests Issues
+## Task: Let remove profile pic be an option
 
-### Step 1: Fix departments dropdown accessibility for all users
-- [x] Identify the issue in backend/routes/auth.js
-- [x] Edit route to allow all authenticated users (not just Admin) to view departments
+### Steps:
+1. [x] Analyze the codebase to understand how profile pictures work
+2. [x] Create and confirm plan with user
+3. [x] Update frontend/public/js/profile.js - Add remove profile picture functionality
+4. [x] Update frontend/views/profile.html - Make Remove button controlled by JavaScript
+5. [x] Update frontend/public/js/header-profile.js - Fix endpoint reference
 
-### Step 2: Fix white text visibility in form inputs
-- [x] Identify the issue in frontend/public/css/assets.css
-- [x] Add proper background color (#333) and text color (#fff) to form inputs
-
-### Step 3: Test the changes
-- [x] Start the server and verify departments load correctly
-- [x] Verify form inputs have proper visibility
+### Status: Complete

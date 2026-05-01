@@ -11,7 +11,7 @@ function renderSingleDeptChart(deptData) {
         singleChartContainer.id = 'singleDeptChartContainer';
         singleChartContainer.className = 'chart-card single-dept-chart';
         singleChartContainer.innerHTML = `
-            <h3>📊 My Department: ${deptData.department}</h3>
+            <h3>My Department: ${deptData.department}</h3>
             <div style="height: 500px; position: relative;">
                 <canvas id="singleDeptChart"></canvas>
             </div>

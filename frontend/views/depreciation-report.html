@@ -12,6 +12,10 @@
             position: relative;
             z-index: 100;
         }
+        /* Apply neon pink/lilac to all Font Awesome icons within the main content */
+        .main-content .fas {
+            color: #965ae4;
+        }
     </style>
 </head>
 <body>
@@ -20,9 +24,11 @@
             <div class="menu-icon menu-toggle">☰</div>
             <h1 class="logo">ASSETRA</h1>
         </div>
-        <div class="header-right">
+<div class="header-right">
             <span class="user-name" id="userName">User</span>
-            <div class="user-avatar"></div>
+            <div class="user-avatar">
+                <img id="profilePicture" src="/public/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
+            </div>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </header>
@@ -44,14 +50,14 @@
                     <h3 class="section-title">Financial Summary - <span id="departmentName">All Departments</span></h3>
                     <div class="summary-grid">
                         <div class="summary-card">
-                            <div class="card-icon">📦</div>
+                            <div class="card-icon"></div>
                             <div class="card-content">
                                 <div class="card-label">Total Assets</div>
                                 <div class="card-value" id="totalAssets">0</div>
                             </div>
                         </div>
                         <div class="summary-card">
-                            <div class="card-icon">💰</div>
+                            <div class="card-icon"></div>
                             <div class="card-content">
                                 <div class="card-label">Total Purchase Cost</div>
                                 <div class="card-value" id="totalPurchase">Rs.0.00</div>
@@ -59,7 +65,7 @@
                             </div>
                         </div>
                         <div class="summary-card highlight">
-                            <div class="card-icon">📊</div>
+                            <div class="card-icon"></div>
                             <div class="card-content">
                                 <div class="card-label">Current Total Value</div>
                                 <div class="card-value large" id="currentValue">Rs.0.00</div>
@@ -67,7 +73,7 @@
                             </div>
                         </div>
                         <div class="summary-card">
-                            <div class="card-icon">📉</div>
+                            <div class="card-icon"></div>
                             <div class="card-content">
                                 <div class="card-label">Total Depreciation</div>
                                 <div class="card-value" id="totalDep">Rs.0.00</div>
@@ -75,7 +81,7 @@
                             </div>
                         </div>
                         <div class="summary-card">
-                            <div class="card-icon">💵</div>
+                            <div class="card-icon"></div>
                             <div class="card-content">
                                 <div class="card-label">Total Salvage Value</div>
                                 <div class="card-value" id="totalSalvage">Rs.0.00</div>
@@ -83,7 +89,7 @@
                             </div>
                         </div>
                         <div class="summary-card">
-                            <div class="card-icon">📈</div>
+                            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
                             <div class="card-content">
                                 <div class="card-label">Depreciation Rate</div>
                                 <div class="card-value" id="depRate">0%</div>
@@ -119,7 +125,8 @@
         </div>
     </main>
 
-    <script src="/js/sidebar.js"></script>
+<script src="/js/sidebar.js"></script>
+    <script src="/js/header-profile.js"></script>
     <script src="/js/depreciation-report.js"></script>
 </body>
 </html>

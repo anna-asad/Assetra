@@ -174,10 +174,10 @@ async function loadSchedules() {
                         <td>
                             <button class="btn-icon" onclick="toggleSchedule(${schedule.schedule_id}, ${!schedule.is_active})" 
                                     title="${schedule.is_active ? 'Deactivate' : 'Activate'}">
-                                ${schedule.is_active ? '⏸' : '▶'}
+                                ${schedule.is_active ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>'}
                             </button>
                             <button class="btn-icon btn-danger" onclick="deleteSchedule(${schedule.schedule_id})" title="Delete">
-                                🗑
+                                <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     `;

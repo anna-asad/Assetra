@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { findUserByUsername, createUser, findUserByEmail, getAllUsersWithRoles, getUserCountsByRole, deleteUserById, getUserById, updateUser, resetPassword, getAllDepartments, createDepartment, updateDepartment, deleteDepartment } = require('../models/database');
+const { findUserByUsername, createUser, findUserByEmail, getAllUsersWithRoles, getUserCountsByRole, deleteUserById, getUserById, updateUser, resetPassword, getAllDepartments, createDepartment, updateDepartment, deleteDepartment, ensureProfilePictureColumn } = require('../models/database');
 
 async function login(req, res) {
   try {
@@ -43,7 +43,8 @@ async function login(req, res) {
         email: user.email,
         role: user.role,
         department: user.department,
-        createdAt: user.created_at
+        createdAt: user.created_at,
+        profilePicture: user.profile_picture || null
       }
     });
   } catch (error) {
@@ -159,6 +160,14 @@ async function signup(req, res) {
 async function getMyProfile(req, res) {
   try {
     const userId = req.user.userId;
+    
+    // Ensure the profile_picture column exists (will auto-create if missing)
+    try {
+      await ensureProfilePictureColumn();
+    } catch (colError) {
+      console.warn('Profile picture column check warning:', colError.message);
+    }
+    
     const user = await getUserById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -172,7 +181,8 @@ async function getMyProfile(req, res) {
         email: user.email,
         role: user.role,
         department: user.department,
-        createdAt: user.created_at
+        createdAt: user.created_at,
+        profilePicture: user.profile_picture || null
       }
     });
   } catch (error) {
@@ -184,11 +194,21 @@ async function getMyProfile(req, res) {
 async function updateMyProfile(req, res) {
   try {
     const userId = req.user.userId;
-    const { full_name, email } = req.body;
+    const { full_name, email, profile_picture } = req.body;
+
+    // Ensure the profile_picture column exists (will auto-create if missing)
+    try {
+      await ensureProfilePictureColumn();
+    } catch (colError) {
+      console.warn('Profile picture column check warning:', colError.message);
+    }
 
     const updateData = {};
     if (typeof full_name === 'string') updateData.full_name = full_name.trim();
     if (typeof email === 'string') updateData.email = email.trim();
+    if (typeof profile_picture === 'string') {
+      updateData.profile_picture = profile_picture;
+    }
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ success: false, message: 'No profile fields provided' });
@@ -212,7 +232,8 @@ async function updateMyProfile(req, res) {
         email: updated.email,
         role: updated.role,
         department: updated.department,
-        createdAt: updated.created_at
+        createdAt: updated.created_at,
+        profilePicture: updated.profile_picture || null
       }
     });
   } catch (error) {

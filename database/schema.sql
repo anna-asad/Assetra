@@ -1,11 +1,36 @@
 -- Create Database
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'assetra_db')
+USE master;
+GO
+
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'assetra_db')
 BEGIN
-    CREATE DATABASE assetra_db;
+    ALTER DATABASE assetra_db SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE assetra_db;
 END;
+CREATE DATABASE assetra_db;
 GO
 
 USE assetra_db;
+GO
+
+-- Ensure the SQL Login 'testuser' exists in the master instance
+-- Note: Run this script with an account that has sysadmin privileges
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'testuser')
+BEGIN
+    CREATE LOGIN [testuser] WITH PASSWORD = 'Test@1234', CHECK_POLICY = OFF;
+END
+ELSE
+BEGIN
+    ALTER LOGIN [testuser] WITH PASSWORD = 'Test@1234';
+END
+GO
+
+-- Ensure the user exists in this database and has owner permissions
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'testuser')
+BEGIN
+    CREATE USER [testuser] FOR LOGIN [testuser];
+END
+ALTER ROLE db_owner ADD MEMBER [testuser];
 GO
 
 IF OBJECT_ID('departments', 'U') IS NOT NULL DROP TABLE departments;
@@ -30,7 +55,8 @@ CREATE TABLE users (
     department NVARCHAR(50),
     is_active BIT DEFAULT 1,
     created_at DATETIME DEFAULT GETDATE(),
-    updated_at DATETIME DEFAULT GETDATE()
+    updated_at DATETIME DEFAULT GETDATE(),
+    profile_picture NVARCHAR(MAX) NULL
 );
 GO
 

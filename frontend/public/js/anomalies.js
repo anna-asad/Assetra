@@ -69,12 +69,12 @@ function displayAnomalies() {
     const { summary, missing_assets, overdue_assets, unused_assets, suspicious_patterns } = anomaliesData;
 
     // Update summary
-    document.getElementById('totalAnomalies').textContent = summary.total_anomalies;
-    document.getElementById('criticalCount').textContent = anomaliesData.critical_count;
-    document.getElementById('missingCount').textContent = summary.missing_assets_count;
-    document.getElementById('overdueCount').textContent = summary.overdue_assets_count;
-    document.getElementById('unusedCount').textContent = summary.unused_assets_count;
-    document.getElementById('patternCount').textContent = summary.suspicious_patterns_count;
+    document.getElementById('totalAnomalies').innerHTML = `<i class="fas fa-exclamation-circle"></i> ${summary.total_anomalies}`;
+    document.getElementById('criticalCount').innerHTML = `<i class="fas fa-radiation"></i> ${anomaliesData.critical_count}`;
+    document.getElementById('missingCount').innerHTML = `<i class="fas fa-search-minus"></i> ${summary.missing_assets_count}`;
+    document.getElementById('overdueCount').innerHTML = `<i class="fas fa-clock"></i> ${summary.overdue_assets_count}`;
+    document.getElementById('unusedCount').innerHTML = `<i class="fas fa-archive"></i> ${summary.unused_assets_count}`;
+    document.getElementById('patternCount').innerHTML = `<i class="fas fa-project-diagram"></i> ${summary.suspicious_patterns_count}`;
 
     // Display patterns
     if (suspicious_patterns && suspicious_patterns.length > 0) {

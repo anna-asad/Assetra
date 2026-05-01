@@ -43,10 +43,31 @@
         </div>
         <div class="header-right">
             <span class="user-name" id="userName">User</span>
-            <div class="user-avatar"></div>
+            <div class="user-avatar">
+                <img id="profilePicture" src="/public/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
+            </div>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
     </header>
+
+    <!-- Profile Picture Upload Modal -->
+    <div id="profilePictureModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProfilePictureModal()">&times;</span>
+            <h2>Upload Profile Picture</h2>
+            <form id="profilePictureForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="profilePictureInput">Choose a picture:</label>
+                    <input type="file" id="profilePictureInput" accept="image/*" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Upload</button>
+                    <button type="button" id="removeProfilePicBtn" class="cancel-btn" style="background-color: #dc3545; color: white; display: none;">Remove Picture</button>
+                    <button type="button" class="cancel-btn" onclick="closeProfilePictureModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <main class="main-content">
         <div class="page-header">
@@ -63,12 +84,13 @@
         </div>
 
         <div class="filters">
-            <select id="statusFilter" class="filter-select">
+<select id="statusFilter" class="filter-select">
                 <option value="">All Status</option>
                 <option value="Available">Available</option>
                 <option value="Allocated">Allocated</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Missing">Missing</option>
+                <option value="Disposed">Disposed</option>
             </select>
         </div>
 
@@ -188,7 +210,7 @@
             <form id="disposalForm">
                 <div class="form-group">
                     <label>Reason for Disposal:</label>
-                    <textarea id="disposalReason" rows="5" style="width: 100%; min-height: 100px; resize: vertical;" required placeholder="e.g., Damaged beyond repair, Obsolete technology"></textarea>
+                    <textarea id="disposalReason" rows="5" style="width: 100%; min-height: 100px; resize: vertical;" placeholder="e.g., Damaged beyond repair, Obsolete technology" disabled></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -209,7 +231,8 @@
         </div>
     </div>
 
-    <script src="/js/sidebar.js"></script>
+<script src="/js/sidebar.js"></script>
+    <script src="/js/header-profile.js"></script>
     <script src="/js/assets.js"></script>
 </body>
 </html>

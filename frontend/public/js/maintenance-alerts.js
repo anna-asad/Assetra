@@ -107,8 +107,8 @@ function displayAlerts(alerts) {
         else warningCount++;
     });
     
-    document.getElementById('criticalCount').textContent = criticalCount;
-    document.getElementById('warningCount').textContent = warningCount;
+    document.getElementById('criticalCount').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${criticalCount}`;
+    document.getElementById('warningCount').innerHTML = `<i class="fas fa-exclamation-circle"></i> ${warningCount}`;
     
     // Display alerts table
     if (alerts.length === 0) {

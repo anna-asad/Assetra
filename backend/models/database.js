@@ -5,11 +5,30 @@ async function getUserById(userId) {
     const pool = await getConnection();
     const result = await pool.request()
       .input('user_id', sql.Int, userId)
-      .query('SELECT user_id, username, full_name, email, role, department, is_active, created_at FROM users WHERE user_id = @user_id');
+      .query('SELECT user_id, username, full_name, email, role, department, is_active, created_at, profile_picture FROM users WHERE user_id = @user_id');
     return result.recordset[0];
   } catch (error) {
     console.error('Error getting user by ID:', error);
     throw error;
+  }
+}
+
+// Ensure profile_picture column exists in users table
+async function ensureProfilePictureColumn() {
+  try {
+    const pool = await getConnection();
+    // This check will throw error 207 if the column is missing
+    await pool.request().query('SELECT TOP 1 profile_picture FROM users');
+  } catch (error) {
+    // Error 207 is "Invalid column name" in SQL Server
+    if (error.number === 207 || (error.message && error.message.includes("Invalid column name 'profile_picture'"))) {
+      console.warn('Adding missing column profile_picture to users table');
+      const pool = await getConnection();
+      await pool.request().query('ALTER TABLE users ADD profile_picture NVARCHAR(MAX) NULL');
+      console.log('Column profile_picture added successfully');
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -23,15 +42,25 @@ async function updateUser(userId, updateData) {
       .input('user_id', sql.Int, userId);
     
     keys.forEach(key => {
-      request.input(key, sql.NVarChar, updateData[key]);
+      // Use MAX length for profile_picture to avoid truncation of base64 data
+      if (key === 'profile_picture') {
+        request.input(key, sql.NVarChar(sql.MAX), updateData[key]);
+      } else {
+        request.input(key, sql.NVarChar, updateData[key]);
+      }
     });
     
-    const result = await request.query(`
+    // First update the user
+    await request.query(`
       UPDATE users 
       SET ${setClause}, updated_at = GETDATE()
-      OUTPUT INSERTED.*
       WHERE user_id = @user_id
     `);
+    
+    // Then fetch and return the updated user
+    const result = await pool.request()
+      .input('user_id', sql.Int, userId)
+      .query('SELECT user_id, username, full_name, email, role, department, is_active, created_at, profile_picture FROM users WHERE user_id = @user_id');
     
     return result.recordset[0];
   } catch (error) {
@@ -2037,6 +2066,7 @@ module.exports = {
   getAllUsersWithRoles,
   getUserCountsByRole,
   deleteUserById,
+  ensureProfilePictureColumn,
   
   // Department functions
   ensureDepartmentsTable,

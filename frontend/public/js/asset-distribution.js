@@ -123,7 +123,7 @@ function renderDapartmentsChart(allDistribution) {
             plugins: {
                 title: {
                     display: true,
-                    text: '📊 All Departments',
+                    text: 'All Departments',
                     font: { size: 24, weight: 'bold' },
                     color: '#e8b4e8'
                 },

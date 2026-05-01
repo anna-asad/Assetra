@@ -120,13 +120,62 @@
     height: 120px;
     border-radius: 50%;
     background-color: #e8b4e8;
-    margin: 0 auto 20px;
+    margin: 0 auto 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 48px;
     font-weight: bold;
     color: #333;
+    position: relative;
+    overflow: visible;
+}
+
+/* Avatar initials display */
+.avatar-initials {
+    font-size: 42px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* Avatar picture - hidden by default */
+.avatar-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Avatar edit button overlay */
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fa3bda 0%, #e8b4e8 100%);
+    border: 2px solid #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    padding: 0;
+}
+
+.avatar-edit-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(250, 59, 218, 0.4);
+}
+
+.avatar-edit-btn svg {
+    width: 14px;
+    height: 14px;
 }
 
 .profile-header h3 {
@@ -167,6 +216,164 @@
 
 .detail-value {
     color: #ffffff;
+}
+
+/* Profile Picture Upload Modal Styles */
+#profilePictureModal .modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a1a2a 100%);
+    border: 2px solid #fa3bda;
+    box-shadow: 0 0 30px rgba(250, 59, 218, 0.4), 0 0 60px rgba(250, 59, 218, 0.2);
+    max-width: 450px;
+    padding: 30px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#profilePictureModal .modal-header {
+    background: transparent;
+    padding: 0 0 20px 0;
+    border: none;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    position: relative;
+}
+
+#profilePictureModal .modal-header h2 {
+    font-size: 28px;
+    color: #fa3bda;
+    text-shadow: 0 0 10px rgba(250, 59, 218, 0.8), 0 0 20px rgba(250, 59, 218, 0.5), 0 0 30px rgba(250, 59, 218, 0.3);
+    letter-spacing: 1px;
+}
+
+#profilePictureModal .close {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 28px;
+    color: #fa3bda;
+    text-shadow: 0 0 10px rgba(250, 59, 218, 0.8);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #fa3bda;
+    background: rgba(250, 59, 218, 0.1);
+    transition: all 0.3s ease;
+}
+
+#profilePictureModal .close:hover {
+    background: rgba(250, 59, 218, 0.3);
+    box-shadow: 0 0 15px rgba(250, 59, 218, 0.6);
+}
+
+#profilePictureModal .modal-body {
+    padding: 20px 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+#profilePictureModal .form-group {
+    width: 100%;
+    text-align: center;
+}
+
+#profilePictureModal .form-group label {
+    display: block;
+    font-size: 18px;
+    color: #e8b4e8;
+    margin-bottom: 15px;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(232, 180, 232, 0.5);
+}
+
+#profilePictureModal .form-group input[type="file"] {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed #fa3bda;
+    border-radius: 12px;
+    color: #e8b4e8;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#profilePictureModal .form-group input[type="file"]:hover {
+    background: rgba(250, 59, 218, 0.1);
+    box-shadow: 0 0 20px rgba(250, 59, 218, 0.3);
+}
+
+#profilePictureModal .form-group input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #fa3bda 0%, #e8b4e8 100%);
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+#profilePictureModal .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    padding-top: 10px;
+}
+
+#profilePictureModal .submit-btn,
+#profilePictureModal .cancel-btn {
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#profilePictureModal .submit-btn {
+    background: linear-gradient(135deg, #fa3bda 0%, #e8b4e8 100%);
+    color: #1a1a1a;
+    border: none;
+    box-shadow: 0 0 20px rgba(250, 59, 218, 0.4);
+}
+
+#profilePictureModal .submit-btn:hover {
+    box-shadow: 0 0 30px rgba(250, 59, 218, 0.6), 0 0 50px rgba(250, 59, 218, 0.3);
+    transform: translateY(-2px);
+}
+
+#profilePictureModal .cancel-btn {
+    background: transparent;
+    color: #e8b4e8;
+    border: 2px solid #e8b4e8;
+}
+
+#profilePictureModal .cancel-btn:hover {
+    background: rgba(232, 180, 232, 0.1);
+    box-shadow: 0 0 15px rgba(232, 180, 232, 0.4);
+}
+
+/* Old close button styling for compatibility */
+#profilePictureModal .close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    color: #333;
+    cursor: pointer;
+    background: none;
+    border: none;
 }
 
 @media (max-width: 768px) {

@@ -169,14 +169,14 @@ async function loadFinancialData() {
 }
 
 function displayFinancialData(dep) {
-    document.getElementById('finPurchaseCost').textContent = `Rs.${dep.purchase_cost.toFixed(2)}`;
-    document.getElementById('finSalvageValue').textContent = `Rs.${dep.salvage_value.toFixed(2)}`;
-    document.getElementById('finUsefulLife').textContent = `${dep.useful_life_years} years`;
-    document.getElementById('finYearsInUse').textContent = `${dep.years_in_use} years`;
-    document.getElementById('finBookValue').textContent = `Rs.${dep.current_book_value.toFixed(2)}`;
-    document.getElementById('finAnnualDep').textContent = `Rs.${dep.annual_depreciation.toFixed(2)}`;
-    document.getElementById('finAccumDep').textContent = `Rs.${dep.accumulated_depreciation.toFixed(2)}`;
-    document.getElementById('finDepRate').textContent = `${dep.depreciation_rate}%`;
+    document.getElementById('finPurchaseCost').innerHTML = `<i class="fas fa-tags"></i> Rs.${dep.purchase_cost.toFixed(2)}`;
+    document.getElementById('finSalvageValue').innerHTML = `<i class="fas fa-recycle"></i> Rs.${dep.salvage_value.toFixed(2)}`;
+    document.getElementById('finUsefulLife').innerHTML = `<i class="fas fa-hourglass-half"></i> ${dep.useful_life_years} years`;
+    document.getElementById('finYearsInUse').innerHTML = `<i class="fas fa-history"></i> ${dep.years_in_use} years`;
+    document.getElementById('finBookValue').innerHTML = `<i class="fas fa-wallet"></i> Rs.${dep.current_book_value.toFixed(2)}`;
+    document.getElementById('finAnnualDep').innerHTML = `<i class="fas fa-chart-line"></i> Rs.${dep.annual_depreciation.toFixed(2)}`;
+    document.getElementById('finAccumDep').innerHTML = `<i class="fas fa-layer-group"></i> Rs.${dep.accumulated_depreciation.toFixed(2)}`;
+    document.getElementById('finDepRate').innerHTML = `<i class="fas fa-percentage"></i> ${dep.depreciation_rate}%`;
     
     // Draw simple depreciation chart
     drawDepreciationChart(dep);

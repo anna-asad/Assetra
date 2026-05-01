@@ -56,7 +56,7 @@ function showAccessDenied(message) {
         min-width: 280px;
     `;
     popup.innerHTML = `
-        <div style="font-size: 28px; margin-bottom: 8px;">🚫</div>
+        <div style="font-size: 28px; margin-bottom: 8px;"><i class="fas fa-ban"></i></div>
         <div>ACCESS DENIED</div>
         <div style="font-size: 13px; font-weight: normal; margin-top: 6px; opacity: 0.9;">${message}</div>
     `;
