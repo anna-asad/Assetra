@@ -4,17 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assetra - Depreciation Report</title>
-    <link rel="stylesheet" href="/css/depreciation-report.css">
+<link rel="stylesheet" href="/css/depreciation-report.css">
     <style>
+        :root {
+            --neon-glow: rgba(255, 0, 127, 0.6);
+            --neon-cute: #ff007f;
+        }
+
         .header {
             border-bottom: 4px solid #fa3bda;
             box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
             position: relative;
             z-index: 100;
         }
+
         /* Apply neon pink/lilac to all Font Awesome icons within the main content */
         .main-content .fas {
             color: #965ae4;
+        }
+
+        /* Hover Glow & Reflection Effect for all buttons */
+        .add-btn, .action-btn, .btn-pdf, .btn-excel {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-btn:hover, .action-btn:hover, .btn-pdf:hover, .btn-excel:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), 0 0 20px var(--neon-glow);
+            filter: brightness(1.1);
         }
     </style>
 </head>
@@ -27,7 +46,7 @@
 <div class="header-right">
             <span class="user-name" id="userName">User</span>
             <div class="user-avatar">
-                <img id="profilePicture" src="/public/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
+                <img id="profilePicture" src="/images/default-avatar.png" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
             </div>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
@@ -37,6 +56,8 @@
         <div class="page-header">
             <h2 class="page-title">Depreciation & Valuation Report</h2>
             <div class="header-actions">
+                <button id="pdfBtn" class="action-btn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                <button id="exportBtn" class="action-btn"><i class="fas fa-file-csv"></i> Export CSV</button>
                 <button class="back-btn" onclick="goBack()">← Back</button>
             </div>
         </div>

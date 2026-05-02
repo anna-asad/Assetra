@@ -458,6 +458,16 @@ function openDisposalModal() {
         toast.warning('Please select an asset to request disposal');
         return;
     }
+    
+    // Clear previous reason
+    const reasonInput = document.getElementById('disposalReason');
+    if (reasonInput) {
+        reasonInput.value = '';
+        // Ensure the field is interactive for all users including Viewers
+        reasonInput.disabled = false;
+        reasonInput.readOnly = false;
+    }
+
     document.getElementById('disposalModal').style.display = 'block';
 }
 

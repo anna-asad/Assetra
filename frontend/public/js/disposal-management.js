@@ -74,8 +74,22 @@ async function loadDisposalRequests() {
 }
 
 async function processApproval(requestId, status, currentLevel, requestedByRole) {
-    // Remove comments prompt for all statuses
-    let comments = '';
+    // Prompt the user for a comment/reason for their decision
+    let promptMessage = `Optional comments for ${status.toLowerCase()} status:`;
+    if (status === 'Rejected') {
+        promptMessage = `Please provide a reason for rejecting this request (Required):`;
+    }
+
+    let comments = prompt(promptMessage, "");
+
+    // If rejecting, force a comment. If user cancels prompt, stop the process.
+    if (status === 'Rejected' && !comments) {
+        alert("A reason is required to reject a disposal request.");
+        return;
+    }
+    
+    // If the user clicks "Cancel", we stop the process
+    if (comments === null) return;
 
     try {
         const response = await fetch('/api/assets/disposal-approve', {
@@ -87,7 +101,7 @@ async function processApproval(requestId, status, currentLevel, requestedByRole)
             body: JSON.stringify({
                 request_id: requestId,
                 status,
-                comments // Send empty string for comments
+                comments: comments || '' 
             })
         });
         const data = await response.json();

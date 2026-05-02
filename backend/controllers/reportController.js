@@ -314,8 +314,87 @@ async function getDepartments(req, res) {
   }
 }
 
+// Generate PDF for Depreciation and Valuation Report
+async function generateDepreciationPDF(req, res) {
+  try {
+    let department = null;
+    if (req.user.role !== 'Admin' && req.user.role !== 'Viewer') {
+      department = req.user.department;
+    }
+    
+    const summary = await db.getDepreciationSummary(department);
+    const assets = await db.getAssetsWithDepreciation(department);
+    
+    if (!assets || assets.length === 0) {
+      return res.status(404).json({ success: false, message: 'No depreciation data found' });
+    }
+
+    const doc = new PDFDocument({ margin: 30, layout: 'landscape' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="financial-report-${new Date().getTime()}.pdf"`);
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(20).font('Helvetica-Bold').text('Financial: Depreciation & Valuation Report', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Department: ${department || 'All Departments'}`, { align: 'center' });
+    doc.text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(2);
+
+    // Financial Summary
+    doc.fontSize(14).font('Helvetica-Bold').text('Summary Statistics');
+    doc.fontSize(10).font('Helvetica');
+    doc.text(`Total Assets: ${summary.total_assets}`);
+    doc.text(`Total Purchase Cost: Rs.${summary.total_purchase_cost.toFixed(2)}`);
+    doc.text(`Total Accumulated Depreciation: Rs.${summary.total_accumulated_depreciation.toFixed(2)}`);
+    doc.text(`Total Current Book Value (Valuation): Rs.${summary.total_current_value.toFixed(2)}`);
+    doc.moveDown(2);
+
+    // Table Configuration
+    const tableTop = doc.y;
+    const colWidths = [80, 150, 80, 80, 60, 80, 80, 80];
+    const headers = ['Tag', 'Asset Name', 'Dept', 'Cost', 'Years', 'Annual', 'Accum', 'Book Value'];
+    
+    // Render Headers
+    doc.font('Helvetica-Bold');
+    headers.forEach((h, i) => {
+        const x = 30 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+        doc.text(h, x, tableTop);
+    });
+    
+    doc.moveTo(30, tableTop + 15).lineTo(760, tableTop + 15).stroke();
+    let currentY = tableTop + 25;
+    doc.font('Helvetica');
+
+    // Render Rows
+    assets.forEach(asset => {
+        if (currentY > 500) {
+            doc.addPage();
+            currentY = 50;
+        }
+        
+        let x = 30;
+        doc.text(asset.asset_tag, x, currentY); x += colWidths[0];
+        doc.text(asset.asset_name, x, currentY, { width: 140 }); x += colWidths[1];
+        doc.text(asset.department || '-', x, currentY); x += colWidths[2];
+        doc.text(asset.purchase_cost.toFixed(2), x, currentY); x += colWidths[3];
+        doc.text(asset.years_in_use.toString(), x, currentY); x += colWidths[4];
+        doc.text(asset.annual_depreciation.toFixed(2), x, currentY); x += colWidths[5];
+        doc.text(asset.accumulated_depreciation.toFixed(2), x, currentY); x += colWidths[6];
+        doc.text(asset.current_book_value.toFixed(2), x, currentY);
+        
+        currentY += 20;
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error('Depreciation PDF error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 module.exports = {
   generatePDFReport,
   generateExcelReport,
-  getDepartments
+  getDepartments,
+  generateDepreciationPDF
 };

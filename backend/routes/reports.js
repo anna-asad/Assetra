@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generatePDFReport, generateExcelReport, getDepartments } = require('../controllers/reportController');
+const { generatePDFReport, generateExcelReport, getDepartments, generateDepreciationPDF } = require('../controllers/reportController');
 const authenticateToken = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
@@ -11,9 +11,12 @@ router.use(authenticateToken);
 router.get('/departments', getDepartments);
 
 // GET /api/reports/pdf - Generate PDF report
-router.get('/pdf', roleCheck(['Admin', 'Manager']), generatePDFReport);
+router.get('/pdf', roleCheck(['Admin', 'Manager', 'Viewer']), generatePDFReport);
+
+// GET /api/reports/depreciation/pdf - Generate Depreciation PDF report
+router.get('/depreciation/pdf', roleCheck(['Admin', 'Manager', 'Viewer']), generateDepreciationPDF);
 
 // GET /api/reports/excel - Generate Excel report
-router.get('/excel', roleCheck(['Admin', 'Manager']), generateExcelReport);
+router.get('/excel', roleCheck(['Admin', 'Manager', 'Viewer']), generateExcelReport);
 
 module.exports = router;
